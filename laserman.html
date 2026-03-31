@@ -869,8 +869,17 @@
       align-items: center;
       justify-content: center;
     }
-    #confirm-modal.show {
+    #confirm-modal.show, #rematch-modal.show {
       display: flex;
+    }
+    #rematch-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.85);
+      align-items: center;
+      justify-content: center;
     }
     .confirm-box {
       text-align: center;
@@ -1203,6 +1212,18 @@
       <div class="confirm-buttons">
         <button class="menu-btn" id="confirm-yes" style="font-size:0.85rem;padding:10px 24px;border-color:var(--red);color:var(--red);text-shadow:0 0 8px rgba(255,0,102,0.4)">LEAVE</button>
         <button class="menu-btn" id="confirm-no" style="font-size:0.85rem;padding:10px 24px">STAY</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rematch modal -->
+  <div id="rematch-modal">
+    <div class="confirm-box">
+      <div class="confirm-text" id="rematch-modal-text">PLAY AGAIN?</div>
+      <div class="confirm-subtext" id="rematch-modal-sub">OPPONENT WANTS ANOTHER ROUND</div>
+      <div class="confirm-buttons">
+        <button class="menu-btn" id="rematch-yes" style="font-size:0.85rem;padding:10px 24px">YES</button>
+        <button class="menu-btn" id="rematch-no" style="font-size:0.85rem;padding:10px 24px;border-color:var(--red);color:var(--red);text-shadow:0 0 8px rgba(255,0,102,0.4)">NO</button>
       </div>
     </div>
   </div>
@@ -3650,6 +3671,8 @@
 
     function goToMainMenu() {
       hideMessage();
+      document.getElementById('new-game-btn').textContent = 'NEW GAME';
+      document.getElementById('rematch-modal').classList.remove('show');
       showScreen('title-screen');
     }
 
@@ -3804,19 +3827,49 @@
           }
         }
         if (data.type === 'rematch-request') {
-          // Other player wants a rematch
+          // Other player wants a rematch — ask this player to confirm
+          const name = onlineOpponentName || 'OPPONENT';
+          document.getElementById('rematch-modal-text').textContent = 'PLAY AGAIN?';
+          document.getElementById('rematch-modal-sub').textContent = name + ' WANTS ANOTHER ROUND';
+          document.getElementById('rematch-modal').classList.add('show');
+        }
+        if (data.type === 'rematch-accept') {
+          // Other player accepted — both transition to word screens
+          hideMessage();
+          document.getElementById('new-game-btn').textContent = 'NEW GAME';
           if (onlineRole === 'host') {
+            showScreen('online-screen');
+            document.getElementById('online-role-select').style.display = 'none';
+            document.getElementById('online-host-view').style.display = 'block';
+            document.getElementById('online-join-view').style.display = 'none';
+            document.getElementById('online-wait-word').style.display = 'none';
             showOnlineHostWordEntry();
           } else {
+            showScreen('online-screen');
+            document.getElementById('online-role-select').style.display = 'none';
+            document.getElementById('online-host-view').style.display = 'none';
+            document.getElementById('online-join-view').style.display = 'none';
             showOnlineWaitWord();
           }
+        }
+        if (data.type === 'rematch-decline') {
+          // Other player declined — show toast and go to main menu
+          hideMessage();
+          document.getElementById('new-game-btn').textContent = 'NEW GAME';
+          const name = onlineOpponentName || 'OPPONENT';
+          cleanupPeer();
+          showToast(name + ' LEFT THE ROOM', () => {
+            goToMainMenu();
+          });
         }
       });
       conn.on('close', () => {
         const disconnectedName = onlineOpponentName || 'OPPONENT';
         peerConn = null;
-        // Dismiss confirm modal if open
+        // Dismiss any modals
         hideConfirmLeave();
+        document.getElementById('rematch-modal').classList.remove('show');
+        document.getElementById('new-game-btn').textContent = 'NEW GAME';
         if (document.getElementById('game-screen').classList.contains('active')) {
           showMessage(disconnectedName + '<br>DISCONNECTED', 'lose');
           gameState.gameOver = true;
@@ -4249,6 +4302,33 @@
       hideConfirmLeave();
     });
 
+    // Rematch modal handlers
+    onTap(document.getElementById('rematch-yes'), () => {
+      document.getElementById('rematch-modal').classList.remove('show');
+      onlineSend({ type: 'rematch-accept' });
+      hideMessage();
+      if (onlineRole === 'host') {
+        showScreen('online-screen');
+        document.getElementById('online-role-select').style.display = 'none';
+        document.getElementById('online-host-view').style.display = 'block';
+        document.getElementById('online-join-view').style.display = 'none';
+        document.getElementById('online-wait-word').style.display = 'none';
+        showOnlineHostWordEntry();
+      } else {
+        showScreen('online-screen');
+        document.getElementById('online-role-select').style.display = 'none';
+        document.getElementById('online-host-view').style.display = 'none';
+        document.getElementById('online-join-view').style.display = 'none';
+        showOnlineWaitWord();
+      }
+    });
+    onTap(document.getElementById('rematch-no'), () => {
+      document.getElementById('rematch-modal').classList.remove('show');
+      onlineSend({ type: 'rematch-decline' });
+      cleanupPeer();
+      goToMainMenu();
+    });
+
     onTap(document.getElementById('btn-online-back'), () => {
       // If connected to a peer, confirm before leaving
       if (peerConn) {
@@ -4334,22 +4414,10 @@
           goToMainMenu();
           return;
         }
-        // Request rematch over network
+        // Request rematch — wait for other player to confirm
         onlineSend({ type: 'rematch-request' });
-        if (onlineRole === 'host') {
-          showScreen('online-screen');
-          document.getElementById('online-role-select').style.display = 'none';
-          document.getElementById('online-host-view').style.display = 'block';
-          document.getElementById('online-join-view').style.display = 'none';
-          document.getElementById('online-wait-word').style.display = 'none';
-          showOnlineHostWordEntry();
-        } else {
-          showScreen('online-screen');
-          document.getElementById('online-role-select').style.display = 'none';
-          document.getElementById('online-host-view').style.display = 'none';
-          document.getElementById('online-join-view').style.display = 'none';
-          showOnlineWaitWord();
-        }
+        const name = onlineOpponentName || 'OPPONENT';
+        document.getElementById('new-game-btn').textContent = 'WAITING FOR ' + name + '...';
       } else if (gameState.mode === 'multi') {
         goToWordEntry();
       } else {
