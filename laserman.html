@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
   <title>LASERMAN</title>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <style>
@@ -3827,11 +3829,33 @@
           }
         }
         if (data.type === 'rematch-request') {
-          // Other player wants a rematch — ask this player to confirm
-          const name = onlineOpponentName || 'OPPONENT';
-          document.getElementById('rematch-modal-text').textContent = 'PLAY AGAIN?';
-          document.getElementById('rematch-modal-sub').textContent = name + ' WANTS ANOTHER ROUND';
-          document.getElementById('rematch-modal').classList.add('show');
+          const btn = document.getElementById('new-game-btn');
+          if (btn.textContent.startsWith('WAITING')) {
+            // We also clicked NEW GAME — treat as mutual accept
+            onlineSend({ type: 'rematch-accept' });
+            btn.textContent = 'NEW GAME';
+            hideMessage();
+            if (onlineRole === 'host') {
+              showScreen('online-screen');
+              document.getElementById('online-role-select').style.display = 'none';
+              document.getElementById('online-host-view').style.display = 'block';
+              document.getElementById('online-join-view').style.display = 'none';
+              document.getElementById('online-wait-word').style.display = 'none';
+              showOnlineHostWordEntry();
+            } else {
+              showScreen('online-screen');
+              document.getElementById('online-role-select').style.display = 'none';
+              document.getElementById('online-host-view').style.display = 'none';
+              document.getElementById('online-join-view').style.display = 'none';
+              showOnlineWaitWord();
+            }
+          } else {
+            // Other player wants a rematch — ask this player to confirm
+            const name = onlineOpponentName || 'OPPONENT';
+            document.getElementById('rematch-modal-text').textContent = 'PLAY AGAIN?';
+            document.getElementById('rematch-modal-sub').textContent = name + ' WANTS ANOTHER ROUND';
+            document.getElementById('rematch-modal').classList.add('show');
+          }
         }
         if (data.type === 'rematch-accept') {
           // Other player accepted — both transition to word screens
