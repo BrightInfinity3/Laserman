@@ -686,6 +686,7 @@
     #keyboard.locked .key:not(.correct):not(.wrong) {
       cursor: default;
       pointer-events: none;
+      opacity: 0.3;
     }
 
     /* Keyboard after game ends — no hover, no interaction */
@@ -900,6 +901,29 @@
       justify-content: center;
     }
 
+    /* Toast notification */
+    #toast {
+      display: none;
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9998;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 3px;
+      color: var(--red);
+      text-shadow: 0 0 10px rgba(255, 0, 102, 0.5);
+      padding: 20px 30px;
+      border: 1px solid rgba(255, 0, 102, 0.3);
+      border-radius: 10px;
+      background: rgba(5, 5, 20, 0.95);
+      text-align: center;
+      white-space: nowrap;
+    }
+    #toast.show { display: block; }
+
     /* Performance selector in Options */
     .perf-options {
       display: flex;
@@ -1105,7 +1129,7 @@
 
     <!-- Joiner word entry (shown when host picks "guess word") -->
     <div id="joiner-word-entry" style="display:none;text-align:center">
-      <div style="font-family:'Orbitron',sans-serif;font-size:0.85rem;letter-spacing:3px;color:var(--green);margin-bottom:12px">YOUR TURN TO SET THE WORD!</div>
+      <div id="joiner-turn-msg" style="font-family:'Orbitron',sans-serif;font-size:0.85rem;letter-spacing:3px;color:var(--green);margin-bottom:12px;display:none">YOUR TURN TO SET THE WORD!</div>
       <div class="entry-heading" style="margin-bottom:8px">ENTER WORD FOR OPPONENT</div>
       <button class="menu-btn white online-options-toggle" id="btn-joiner-options" style="margin:4px auto 8px">OPTIONS</button>
       <div class="online-options-panel" id="joiner-options-panel" style="display:none">
@@ -1167,6 +1191,9 @@
       <button class="game-btn purple" id="main-menu-btn">MAIN MENU</button>
     </div>
   </div>
+
+  <!-- Toast notification -->
+  <div id="toast"></div>
 
   <!-- Confirmation modal -->
   <div id="confirm-modal">
@@ -3436,6 +3463,16 @@
       document.getElementById('message-text-bottom').innerHTML = '';
     }
 
+    function showToast(text, onDone) {
+      const toast = document.getElementById('toast');
+      toast.textContent = text;
+      toast.classList.add('show');
+      setTimeout(() => {
+        toast.classList.remove('show');
+        if (onDone) onDone();
+      }, 2000);
+    }
+
     // ===========================
     // GAME LOGIC
     // ===========================
@@ -3553,9 +3590,12 @@
       frownAnim = null;
       onlineGuessQueue = [];
       onlineWaitingForPeerAnim = false;
+      if (gameState.mode === 'online' || gameState.mode === 'online-host') {
+        onlineRoundCount++;
+      }
 
       buildKeyboard();
-      document.getElementById('keyboard').classList.remove('game-over');
+      document.getElementById('keyboard').classList.remove('game-over', 'locked');
       updateWordDisplay();
       showScreen('game-screen');
       document.querySelector('#game-screen .game-title').textContent = getConfig().name;
@@ -3623,6 +3663,7 @@
     let onlineMyName = ''; // this player's name
     let onlineOpponentName = ''; // remote player's name
     let onlineGuesserName = ''; // name of the player who is guessing
+    let onlineRoundCount = 0; // tracks rounds played in current session
     let onlineWaitingForPeerAnim = false; // guesser waits for spectator animation to complete
 
     function generateRoomCode() {
@@ -3739,6 +3780,8 @@
             // Host wants to guess — joiner sets the word
             document.getElementById('online-wait-word').style.display = 'none';
             document.getElementById('joiner-word-entry').style.display = 'block';
+            // Only show "YOUR TURN" message after the first round
+            document.getElementById('joiner-turn-msg').style.display = onlineRoundCount > 0 ? 'block' : 'none';
             document.getElementById('joiner-word-input').value = '';
             document.getElementById('joiner-word-error').textContent = '';
             // Reset options panel state
@@ -3770,16 +3813,19 @@
         }
       });
       conn.on('close', () => {
+        const disconnectedName = onlineOpponentName || 'OPPONENT';
         peerConn = null;
         // Dismiss confirm modal if open
         hideConfirmLeave();
         if (document.getElementById('game-screen').classList.contains('active')) {
-          showMessage('OPPONENT<br>DISCONNECTED', 'lose');
+          showMessage(disconnectedName + '<br>DISCONNECTED', 'lose');
           gameState.gameOver = true;
         } else if (document.getElementById('online-screen').classList.contains('active')) {
-          // On lobby/word-entry screen — kick to main menu
+          // Show toast with name, then kick to main menu
           cleanupPeer();
-          goToMainMenu();
+          showToast(disconnectedName + ' DISCONNECTED', () => {
+            goToMainMenu();
+          });
         }
       });
       conn.on('error', () => { peerConn = null; });
@@ -3843,6 +3889,7 @@
     function goToOnlineLobby() {
       hideMessage();
       cleanupPeer();
+      onlineRoundCount = 0;
       // Reset all views — show name entry first
       document.getElementById('online-name-entry').style.display = 'block';
       document.getElementById('online-role-select').style.display = 'none';
