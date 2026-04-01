@@ -454,9 +454,10 @@
       flex: 1;
       min-width: 0;
       width: auto;
-      font-size: 0.95rem;
-      letter-spacing: 3px;
-      padding: 14px 16px;
+      font-size: clamp(0.7rem, 2.5vw, 0.95rem);
+      letter-spacing: clamp(1px, 0.5vw, 3px);
+      padding: 14px clamp(8px, 2vw, 16px);
+      white-space: nowrap;
     }
 
     /* ===== GAME SCREEN ===== */
