@@ -140,9 +140,10 @@
       gap: 30px;
     }
 
-    #title-screen .game-title {
+    #title-screen .game-title,
+    .game-title.title-size {
       font-size: 4rem;
-      margin-bottom: 20px;
+      margin-bottom: 0px;
     }
 
     .menu-subtitle {
@@ -150,8 +151,8 @@
       font-size: 0.75rem;
       letter-spacing: 6px;
       color: rgba(0, 240, 255, 0.5);
-      margin-top: -20px;
-      margin-bottom: -10px;
+      margin-top: -25px;
+      margin-bottom: -20px;
     }
 
     .menu-buttons {
@@ -863,7 +864,7 @@
     /* ===== RESPONSIVE ===== */
     @media (max-width: 600px) {
       .game-title { font-size: 2rem; letter-spacing: 4px; }
-      #title-screen .game-title { font-size: 2.6rem; }
+      #title-screen .game-title, .game-title.title-size { font-size: 2.6rem; }
       .menu-btn { width: 260px; font-size: 0.9rem; padding: 14px 30px; }
       .char-option { width: 260px; font-size: 0.8rem; padding: 12px 25px; }
       #word-input { font-size: 1.2rem; }
@@ -1075,7 +1076,7 @@
 
   <!-- ===== WORD ENTRY SCREEN ===== -->
   <div id="word-entry-screen" class="screen">
-    <h1 class="game-title" style="font-size:2.4rem">LASERMAN</h1>
+    <h1 class="game-title title-size">LASERMAN</h1>
     <div class="entry-heading">ENTER TARGET WORD</div>
     <div class="word-input-row">
       <input type="text" id="word-input" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
@@ -1090,7 +1091,7 @@
 
   <!-- ===== ONLINE LOBBY SCREEN ===== -->
   <div id="online-screen" class="screen">
-    <h1 class="game-title" style="margin-bottom:4px">LASERMAN</h1>
+    <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
     <h1 class="game-title" style="font-size:2.2rem; margin-bottom:24px">ONLINE</h1>
 
     <!-- Name entry (shown first) -->
