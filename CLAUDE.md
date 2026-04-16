@@ -33,13 +33,13 @@ Laserman is a hangman-style word guessing game with a cyberpunk/neon aesthetic, 
 
 ## Laserlink Details
 - **Async mode** — sender creates a word; receiver opens a URL to play it. No WebRTC, no active connection.
-- **URL format**: `<origin><path>?ll=<base64url(JSON)>`. JSON payload: `{ w: WORD, n: SENDER_NAME, c: character, col: color }`.
+- **URL format**: `<origin><path>?ll=<base64url(payload)>`. Payload is pipe-separated: `WORD|NAME|CHAR_INDEX|COLOR_INDEX` (e.g., `TEST|GMK|0|0`). Character indices: 0=laserman, 1=laserwoman, 2=lasercat. Color indices: 0=green, 1=blue, 2=yellow. Falls back to JSON parse for backward compat.
 - **URL encoding**: `b64urlEncode`/`b64urlDecode` — URI-safe base64 (`+` → `-`, `/` → `_`, no padding).
 - **Link base**: Built from current `window.location.origin + pathname` — automatically routes to wbcgamez, ladybug, or GitHub Pages depending on where sender is playing.
 - **Message template**: `"<SENDER> has sent you a Laserlink! <URL>"` — composed in `btn-laserlink-create` handler.
 - **Sharing**: Uses `navigator.clipboard.writeText` with fallback to `document.execCommand('copy')`; shows native share sheet via `navigator.share` on supported mobile browsers.
 - **Receiver flow**: On page load, `parseLaserlinkUrl()` checks for `?ll=` param. If valid, `startLaserlinkGame(info)` sets `gameState.mode = 'laserlink'`, applies sender's character/color, strips URL param (via `history.replaceState`), and jumps straight to game screen.
-- **Receiver UI**: `#laserlink-sender-row` above the word display shows "LASERLINK FROM <SENDER>"; NEW GAME button renamed to PLAY AGAIN (replays same word); MAIN MENU button navigates to parent site `/` when on Railway (wbcgamez/ladybug) instead of Laserman's own main menu.
+- **Receiver UI**: `#laserlink-sender-row` above the word display shows "LASERLINK FROM <SENDER>"; NEW GAME button renamed to CREATE LINK (amber, routes to laserlink compose screen); MAIN MENU button navigates to Laserman's main menu.
 - **Receiver performance tier**: Auto-detected (or uses receiver's saved setting) — NOT taken from the sender.
 - **Name persistence**: Sender's name saved in `localStorage` key `laserman_online_name` (shared with Online mode).
 

@@ -155,6 +155,35 @@
       margin-bottom: -20px;
     }
 
+    /* Mode subtitle titles (ONLINE, MULTIPLAYER, LASERLINK) */
+    .game-title.mode-label {
+      font-size: 2.2rem;
+      animation: none;
+      margin-bottom: 24px;
+    }
+    .game-title.mode-label.ml-green {
+      color: var(--green);
+      text-shadow: 0 0 10px rgba(0,255,136,0.8), 0 0 24px rgba(0,255,136,0.4);
+    }
+    .game-title.mode-label.ml-purple {
+      color: var(--purple);
+      text-shadow: 0 0 10px rgba(123,47,255,0.8), 0 0 24px rgba(123,47,255,0.4);
+    }
+    .game-title.mode-label.ml-amber {
+      color: var(--amber);
+      text-shadow: 0 0 10px rgba(255,170,0,0.8), 0 0 24px rgba(255,170,0,0.4);
+    }
+
+    /* Entry heading color variants */
+    .entry-heading.eh-green {
+      color: var(--green);
+      text-shadow: 0 0 10px rgba(0,255,136,0.5);
+    }
+    .entry-heading.eh-amber {
+      color: var(--amber);
+      text-shadow: 0 0 10px rgba(255,170,0,0.5);
+    }
+
     .menu-buttons {
       display: flex;
       flex-direction: column;
@@ -237,6 +266,22 @@
       .menu-btn#btn-laserlink:hover {
         background: rgba(255, 170, 0, 0.1);
         box-shadow: 0 0 25px rgba(255, 170, 0, 0.3), inset 0 0 15px rgba(255, 170, 0, 0.05);
+      }
+    }
+
+    .menu-btn.green {
+      border-color: var(--green);
+      color: var(--green);
+      text-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+    }
+    .menu-btn.green:active {
+      background: rgba(0, 255, 136, 0.15);
+      box-shadow: 0 0 25px rgba(0, 255, 136, 0.3), inset 0 0 15px rgba(0, 255, 136, 0.05);
+    }
+    @media (hover: hover) {
+      .menu-btn.green:hover {
+        background: rgba(0, 255, 136, 0.1);
+        box-shadow: 0 0 25px rgba(0, 255, 136, 0.3), inset 0 0 15px rgba(0, 255, 136, 0.05);
       }
     }
 
@@ -566,6 +611,7 @@
       align-items: center;
       gap: 10px;
       justify-content: center;
+      margin-top: -4px;
     }
     #category-text {
       font-family: 'Share Tech Mono', monospace;
@@ -600,6 +646,7 @@
       font-size: clamp(0.55rem, 1.5vw, 0.7rem);
       color: rgba(255, 170, 0, 0.7);
       letter-spacing: 2px;
+      margin-top: -4px;
     }
     #laserlink-sender-name {
       color: var(--amber);
@@ -609,18 +656,22 @@
 
     /* ===== LASERLINK SCREEN ===== */
     #laserlink-toggle-vis-btn {
-      width: 70px;
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.7rem;
+      font-size: 0.85rem;
       font-weight: 700;
       letter-spacing: 2px;
-      padding: 8px 0;
+      padding: 10px 14px;
       background: rgba(255, 170, 0, 0.08);
       border: 1px solid rgba(255, 170, 0, 0.35);
-      border-radius: 4px;
+      border-radius: 6px;
       color: var(--amber);
       cursor: pointer;
       transition: all 0.2s ease;
+      width: 70px;
+      text-align: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
     #laserlink-toggle-vis-btn:hover {
       background: rgba(255, 170, 0, 0.15);
@@ -924,6 +975,24 @@
       }
     }
 
+    .game-btn.amber {
+      border-color: var(--amber);
+      color: var(--amber);
+      text-shadow: 0 0 5px rgba(255, 170, 0, 0.3);
+    }
+    .game-btn.amber:active {
+      background: rgba(255, 170, 0, 0.15);
+      box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+    }
+    @media (hover: hover) {
+      .game-btn.amber:hover {
+        border-color: var(--amber);
+        color: var(--amber);
+        background: rgba(255, 170, 0, 0.1);
+        box-shadow: 0 0 20px rgba(255, 170, 0, 0.3);
+      }
+    }
+
     /* ===== SCREEN SHAKE ===== */
     @keyframes shake {
       0%, 100% { transform: translate(0, 0); }
@@ -944,17 +1013,20 @@
     @media (max-width: 600px) {
       .game-title { font-size: 2rem; letter-spacing: 4px; }
       #title-screen .game-title, .game-title.title-size { font-size: 2.6rem; }
+      .game-title.mode-label { font-size: 1.6rem; letter-spacing: 4px; margin-bottom: 16px; }
       .menu-btn { width: 260px; font-size: 0.9rem; padding: 14px 30px; }
       .char-option { width: 260px; font-size: 0.8rem; padding: 12px 25px; }
-      #word-input { font-size: 1.2rem; }
+      #word-input, .word-input-styled { font-size: 1.2rem; }
       .word-input-row, .entry-actions { width: min(320px, 90vw); }
-      #toggle-vis-btn { font-size: 0.75rem; }
+      #toggle-vis-btn, #laserlink-toggle-vis-btn { font-size: 0.75rem; }
+      .entry-heading { font-size: 0.85rem; letter-spacing: 3px; }
     }
 
     @media (max-width: 400px) {
       .menu-btn { width: 220px; font-size: 0.8rem; padding: 12px 20px; letter-spacing: 3px; }
       .char-option { width: 220px; font-size: 0.7rem; padding: 10px 20px; }
       .word-input-row, .entry-actions { width: min(280px, 92vw); }
+      .game-title.mode-label { font-size: 1.4rem; margin-bottom: 12px; }
     }
 
     /* Touch devices: ensure finger-friendly targets */
@@ -1156,14 +1228,15 @@
 
   <!-- ===== WORD ENTRY SCREEN ===== -->
   <div id="word-entry-screen" class="screen">
-    <h1 class="game-title title-size">LASERMAN</h1>
+    <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
+    <h1 class="game-title mode-label ml-purple">MULTIPLAYER</h1>
     <div class="entry-heading">ENTER TARGET WORD</div>
-    <div class="word-input-row">
+    <div class="word-input-row" style="margin-top:4px">
       <input type="text" id="word-input" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
       <button id="toggle-vis-btn">HIDE</button>
     </div>
     <div id="word-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;"></div>
-    <div class="entry-actions">
+    <div class="menu-buttons" style="margin-top:8px">
       <button class="menu-btn" id="btn-start-multi">START</button>
       <button class="menu-btn purple" id="btn-entry-back">MAIN MENU</button>
     </div>
@@ -1172,15 +1245,17 @@
   <!-- ===== ONLINE LOBBY SCREEN ===== -->
   <div id="online-screen" class="screen">
     <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
-    <h1 class="game-title" style="font-size:2.2rem; margin-bottom:24px">ONLINE</h1>
+    <h1 class="game-title mode-label ml-green">ONLINE</h1>
 
     <!-- Name entry (shown first) -->
     <div id="online-name-entry" style="text-align:center">
-      <div class="menu-subtitle" style="margin-bottom:12px">ENTER YOUR NAME</div>
-      <div class="word-input-row" style="justify-content:center">
+      <div class="entry-heading eh-green">ENTER YOUR NAME</div>
+      <div class="word-input-row" style="justify-content:center;margin-top:16px">
         <input type="text" id="online-name-input" class="word-input-styled" placeholder="YOUR NAME..." maxlength="12" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters" style="text-align:center;width:280px">
       </div>
-      <button class="menu-btn" id="btn-name-continue" style="margin-top:16px">CONTINUE</button>
+      <div class="menu-buttons" style="margin-top:16px">
+        <button class="menu-btn" id="btn-name-continue">CONTINUE</button>
+      </div>
     </div>
 
     <!-- Role selection (shown after name entry) -->
@@ -1280,27 +1355,27 @@
       <button class="menu-btn" id="btn-joiner-start" style="margin-top:8px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">SEND WORD</button>
     </div>
 
-    <button class="menu-btn purple" id="btn-online-back" style="margin-top:16px">MAIN MENU</button>
+    <button class="menu-btn purple" id="btn-online-back" style="margin-top:4px">MAIN MENU</button>
   </div>
 
   <!-- ===== LASERLINK SCREEN ===== -->
   <div id="laserlink-screen" class="screen">
     <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
-    <h1 class="game-title" style="font-size:2.2rem; margin-bottom:20px; color:var(--amber); text-shadow:0 0 10px rgba(255,170,0,0.6), 0 0 24px rgba(255,170,0,0.3)">LASERLINK</h1>
+    <h1 class="game-title mode-label ml-amber">LASERLINK</h1>
 
     <!-- Compose view -->
     <div id="laserlink-compose" style="text-align:center">
-      <div class="menu-subtitle" style="margin-bottom:12px">YOUR NAME</div>
-      <div class="word-input-row" style="justify-content:center; margin-bottom:16px">
-        <input type="text" id="laserlink-name-input" class="word-input-styled" placeholder="NAME..." maxlength="12" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+      <div class="entry-heading eh-amber">ENTER YOUR NAME</div>
+      <div class="word-input-row" style="justify-content:center;margin-top:16px">
+        <input type="text" id="laserlink-name-input" class="word-input-styled" placeholder="YOUR NAME..." maxlength="12" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
       </div>
-      <div class="menu-subtitle" style="margin-bottom:12px">TARGET WORD</div>
-      <div class="word-input-row" style="justify-content:center">
-        <input type="password" id="laserlink-word-input" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+      <div class="entry-heading eh-amber" style="margin-top:24px">ENTER TARGET WORD</div>
+      <div class="word-input-row" style="justify-content:center;margin-top:16px">
+        <input type="password" id="laserlink-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
         <button id="laserlink-toggle-vis-btn">SHOW</button>
       </div>
       <div id="laserlink-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;margin-top:6px"></div>
-      <div class="entry-actions" style="margin-top:8px">
+      <div class="menu-buttons" style="margin-top:8px">
         <button class="menu-btn amber" id="btn-laserlink-create">CREATE LINK</button>
         <button class="menu-btn purple" id="btn-laserlink-back">MAIN MENU</button>
       </div>
@@ -1308,15 +1383,15 @@
 
     <!-- Share view -->
     <div id="laserlink-share" style="display:none; text-align:center; width:min(440px, 92vw)">
-      <div class="menu-subtitle" style="margin-bottom:10px">SEND TO FRIEND</div>
-      <textarea id="laserlink-message" readonly rows="4"></textarea>
+      <div class="entry-heading eh-amber">SEND TO FRIEND</div>
+      <textarea id="laserlink-message" readonly rows="3" style="margin-top:16px"></textarea>
       <div id="laserlink-copy-status" style="color:var(--green);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;margin-top:8px"></div>
       <div class="entry-actions" style="margin-top:4px">
         <button class="menu-btn amber" id="btn-laserlink-copy">COPY</button>
-        <button class="menu-btn" id="btn-laserlink-share-native" style="display:none">SHARE</button>
+        <button class="menu-btn green" id="btn-laserlink-share-native" style="display:none">SHARE</button>
       </div>
-      <div class="entry-actions" style="margin-top:10px">
-        <button class="menu-btn" id="btn-laserlink-new">NEW WORD</button>
+      <div class="menu-buttons" style="margin-top:10px">
+        <button class="menu-btn amber" id="btn-laserlink-new">NEW WORD</button>
         <button class="menu-btn purple" id="btn-laserlink-done">MAIN MENU</button>
       </div>
     </div>
@@ -3800,12 +3875,15 @@
         llRow.style.display = 'none';
       }
 
-      // LASERLINK mode: change NEW GAME to PLAY AGAIN (same word)
+      // LASERLINK mode: show CREATE LINK button (amber) instead of NEW GAME
       const newGameBtn = document.getElementById('new-game-btn');
       if (gameState.mode === 'laserlink') {
-        newGameBtn.textContent = 'PLAY AGAIN';
+        newGameBtn.textContent = 'CREATE LINK';
+        newGameBtn.classList.remove('purple');
+        newGameBtn.classList.add('amber');
       } else {
         newGameBtn.textContent = 'NEW GAME';
+        newGameBtn.classList.remove('amber');
       }
 
       // Online host: reveal word and lock keyboard (spectator mode)
@@ -4648,8 +4726,8 @@
       } else if (gameState.mode === 'multi') {
         goToWordEntry();
       } else if (gameState.mode === 'laserlink') {
-        // Replay same word
-        startGame(gameState.word);
+        // Go to laserlink compose screen to create a new link
+        goToLaserlink();
       } else {
         startSoloGame();
       }
@@ -4662,12 +4740,7 @@
           goToMainMenu();
         });
       } else if (gameState.mode === 'laserlink') {
-        // LASERLINK receiver: return to parent site home if on Railway, else title screen
-        if (window.location.pathname.startsWith('/laserman')) {
-          window.location.href = '/';
-        } else {
-          goToMainMenu();
-        }
+        goToMainMenu();
       } else {
         cleanupPeer();
         goToMainMenu();
@@ -4730,10 +4803,14 @@
       try { return decodeURIComponent(escape(atob(str))); } catch(e) { return null; }
     }
 
+    const LL_CHARS = ['laserman', 'laserwoman', 'lasercat'];
+    const LL_COLORS = ['green', 'blue', 'yellow'];
+
     function buildLaserlinkUrl(word, name, character, color) {
-      const payload = JSON.stringify({ w: word, n: name, c: character, col: color });
+      const ci = Math.max(0, LL_CHARS.indexOf(character));
+      const co = Math.max(0, LL_COLORS.indexOf(color));
+      const payload = word + '|' + name + '|' + ci + '|' + co;
       const token = b64urlEncode(payload);
-      // Build URL against current location, stripping any existing query/hash
       const base = window.location.origin + window.location.pathname;
       return base + '?ll=' + token;
     }
@@ -4742,10 +4819,20 @@
       const params = new URLSearchParams(window.location.search);
       const token = params.get('ll');
       if (!token) return null;
-      const json = b64urlDecode(token);
-      if (!json) return null;
+      const raw = b64urlDecode(token);
+      if (!raw) return null;
       try {
-        const data = JSON.parse(json);
+        const parts = raw.split('|');
+        if (parts.length >= 4) {
+          const word = parts[0].toUpperCase().slice(0, 30);
+          if (!word || !/^[A-Z]+$/.test(word)) return null;
+          const name = (parts[1] || 'FRIEND').toUpperCase().slice(0, 12);
+          const character = LL_CHARS[parseInt(parts[2])] || 'laserman';
+          const color = LL_COLORS[parseInt(parts[3])] || 'green';
+          return { word, name, character, color };
+        }
+        // Fallback: try JSON for backward compat
+        const data = JSON.parse(raw);
         if (!data.w || typeof data.w !== 'string') return null;
         return {
           word: String(data.w).toUpperCase().slice(0, 30),
