@@ -429,7 +429,6 @@
     #word-entry-screen {
       justify-content: center;
       min-height: 80vh;
-      gap: 20px;
     }
 
     .entry-heading {
@@ -478,9 +477,11 @@
       outline: none;
       width: 280px;
       text-align: left;
-      text-transform: uppercase;
       transition: all 0.3s ease;
     }
+
+    /* Only multiplayer's #word-input auto-uppercases. Online/Laserlink (.word-input-styled) preserve case. */
+    #word-input { text-transform: uppercase; }
 
     #word-input:focus, .word-input-styled:focus {
       border-color: var(--cyan);
@@ -526,11 +527,23 @@
       margin-right: auto;
     }
 
+    .word-input-row.narrow { width: 300px; }
+
     .word-input-row #word-input,
     .word-input-row .word-input-styled {
       flex: 1;
       width: auto;
       min-width: 0;
+    }
+
+    /* Error / spacer line — used between inputs and action buttons for consistent spacing across modes */
+    .error-line {
+      color: var(--red);
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.7rem;
+      letter-spacing: 2px;
+      min-height: 1.2em;
+      margin-top: 6px;
     }
 
     .entry-actions {
@@ -611,7 +624,7 @@
       align-items: center;
       gap: 10px;
       justify-content: center;
-      margin-top: -4px;
+      margin-top: -14px;
     }
     #category-text {
       font-family: 'Share Tech Mono', monospace;
@@ -646,7 +659,7 @@
       font-size: clamp(0.55rem, 1.5vw, 0.7rem);
       color: rgba(255, 170, 0, 0.7);
       letter-spacing: 2px;
-      margin-top: -4px;
+      margin-top: -14px;
     }
     #laserlink-sender-name {
       color: var(--amber);
@@ -655,28 +668,6 @@
     }
 
     /* ===== LASERLINK SCREEN ===== */
-    #laserlink-toggle-vis-btn {
-      font-family: 'Orbitron', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 700;
-      letter-spacing: 2px;
-      padding: 10px 14px;
-      background: rgba(255, 170, 0, 0.08);
-      border: 1px solid rgba(255, 170, 0, 0.35);
-      border-radius: 6px;
-      color: var(--amber);
-      cursor: pointer;
-      transition: all 0.2s ease;
-      width: 70px;
-      text-align: center;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    #laserlink-toggle-vis-btn:hover {
-      background: rgba(255, 170, 0, 0.15);
-      border-color: var(--amber);
-    }
     #laserlink-name-input.word-input-styled {
       text-align: center;
       width: min(280px, 80vw);
@@ -1018,7 +1009,8 @@
       .char-option { width: 260px; font-size: 0.8rem; padding: 12px 25px; }
       #word-input, .word-input-styled { font-size: 1.2rem; }
       .word-input-row, .entry-actions { width: min(320px, 90vw); }
-      #toggle-vis-btn, #laserlink-toggle-vis-btn { font-size: 0.75rem; }
+      .word-input-row.narrow { width: min(260px, 90vw); }
+      #toggle-vis-btn { font-size: 0.75rem; }
       .entry-heading { font-size: 0.85rem; letter-spacing: 3px; }
     }
 
@@ -1026,7 +1018,14 @@
       .menu-btn { width: 220px; font-size: 0.8rem; padding: 12px 20px; letter-spacing: 3px; }
       .char-option { width: 220px; font-size: 0.7rem; padding: 10px 20px; }
       .word-input-row, .entry-actions { width: min(280px, 92vw); }
+      .word-input-row.narrow { width: min(220px, 92vw); }
       .game-title.mode-label { font-size: 1.4rem; margin-bottom: 12px; }
+    }
+
+    /* Options screen — override menu-subtitle negative margins (which were intended for title-screen only) */
+    #options-screen .menu-subtitle {
+      margin-top: 8px;
+      margin-bottom: 10px;
     }
 
     /* Touch devices: ensure finger-friendly targets */
@@ -1230,15 +1229,17 @@
   <div id="word-entry-screen" class="screen">
     <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
     <h1 class="game-title mode-label ml-purple">MULTIPLAYER</h1>
-    <div class="entry-heading">ENTER TARGET WORD</div>
-    <div class="word-input-row" style="margin-top:4px">
-      <input type="text" id="word-input" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
-      <button id="toggle-vis-btn">HIDE</button>
-    </div>
-    <div id="word-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;"></div>
-    <div class="menu-buttons" style="margin-top:8px">
-      <button class="menu-btn" id="btn-start-multi">START</button>
-      <button class="menu-btn purple" id="btn-entry-back">MAIN MENU</button>
+    <div id="multi-entry" style="text-align:center">
+      <div class="entry-heading">ENTER TARGET WORD</div>
+      <div class="word-input-row" style="margin-top:16px">
+        <input type="text" id="word-input" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+        <button id="toggle-vis-btn">HIDE</button>
+      </div>
+      <div id="word-error" class="error-line"></div>
+      <div class="menu-buttons" style="margin-top:8px">
+        <button class="menu-btn" id="btn-start-multi">START</button>
+        <button class="menu-btn purple" id="btn-entry-back">MAIN MENU</button>
+      </div>
     </div>
   </div>
 
@@ -1250,10 +1251,11 @@
     <!-- Name entry (shown first) -->
     <div id="online-name-entry" style="text-align:center">
       <div class="entry-heading eh-green">ENTER YOUR NAME</div>
-      <div class="word-input-row" style="justify-content:center;margin-top:16px">
-        <input type="text" id="online-name-input" class="word-input-styled" placeholder="YOUR NAME..." maxlength="12" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters" style="text-align:center;width:280px">
+      <div class="word-input-row narrow" style="justify-content:center;margin-top:16px">
+        <input type="text" id="online-name-input" class="word-input-styled" placeholder="YOUR NAME..." maxlength="12" autocomplete="off" spellcheck="false" autocorrect="off" style="text-align:center;width:100%">
       </div>
-      <div class="menu-buttons" style="margin-top:16px">
+      <div class="error-line"></div>
+      <div class="menu-buttons" style="margin-top:8px">
         <button class="menu-btn" id="btn-name-continue">CONTINUE</button>
       </div>
     </div>
@@ -1303,7 +1305,7 @@
           </div>
         </div>
         <div class="word-input-row">
-          <input type="text" id="host-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+          <input type="text" id="host-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off">
         </div>
         <div id="host-word-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;"></div>
         <button class="menu-btn" id="btn-host-start" style="margin-top:8px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">SEND WORD</button>
@@ -1312,12 +1314,14 @@
 
     <!-- Join view -->
     <div id="online-join-view" style="display:none;text-align:center">
-      <div class="menu-subtitle">ENTER ROOM CODE</div>
-      <div class="word-input-row" style="margin-top:12px">
-        <input type="text" id="join-code-input" placeholder="ROOM CODE..." maxlength="3" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters" style="text-transform:uppercase;letter-spacing:6px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:1.4rem;background:rgba(0,240,255,0.04);border:1px solid rgba(0,240,255,0.25);border-radius:6px;color:var(--cyan);padding:12px 16px;width:100%;box-sizing:border-box">
+      <div class="entry-heading eh-green">ENTER ROOM CODE</div>
+      <div class="word-input-row narrow" style="justify-content:center;margin-top:16px">
+        <input type="text" id="join-code-input" placeholder="CODE..." maxlength="3" autocomplete="off" spellcheck="false" autocorrect="off" style="letter-spacing:6px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:1.4rem;background:rgba(0,240,255,0.04);border:1px solid rgba(0,240,255,0.25);border-radius:6px;color:var(--cyan);padding:12px 16px;width:100%;box-sizing:border-box">
       </div>
-      <div id="join-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;margin-top:4px"></div>
-      <button class="menu-btn" id="btn-join-connect" style="margin-top:12px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">CONNECT</button>
+      <div id="join-error" class="error-line"></div>
+      <div class="menu-buttons" style="margin-top:8px">
+        <button class="menu-btn green" id="btn-join-connect">CONNECT</button>
+      </div>
       <div id="join-status" style="font-family:'Orbitron',sans-serif;font-size:0.75rem;letter-spacing:3px;color:var(--amber);margin-top:8px;min-height:1.2em"></div>
     </div>
 
@@ -1349,7 +1353,7 @@
         </div>
       </div>
       <div class="word-input-row">
-        <input type="text" id="joiner-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+        <input type="text" id="joiner-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off">
       </div>
       <div id="joiner-word-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;"></div>
       <button class="menu-btn" id="btn-joiner-start" style="margin-top:8px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">SEND WORD</button>
@@ -1367,14 +1371,13 @@
     <div id="laserlink-compose" style="text-align:center">
       <div class="entry-heading eh-amber">ENTER YOUR NAME</div>
       <div class="word-input-row" style="justify-content:center;margin-top:16px">
-        <input type="text" id="laserlink-name-input" class="word-input-styled" placeholder="YOUR NAME..." maxlength="12" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
+        <input type="text" id="laserlink-name-input" class="word-input-styled" placeholder="YOUR NAME..." maxlength="12" autocomplete="off" spellcheck="false" autocorrect="off">
       </div>
       <div class="entry-heading eh-amber" style="margin-top:24px">ENTER TARGET WORD</div>
       <div class="word-input-row" style="justify-content:center;margin-top:16px">
-        <input type="password" id="laserlink-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
-        <button id="laserlink-toggle-vis-btn">SHOW</button>
+        <input type="text" id="laserlink-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off">
       </div>
-      <div id="laserlink-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;margin-top:6px"></div>
+      <div id="laserlink-error" class="error-line"></div>
       <div class="menu-buttons" style="margin-top:8px">
         <button class="menu-btn amber" id="btn-laserlink-create">CREATE LINK</button>
         <button class="menu-btn purple" id="btn-laserlink-back">MAIN MENU</button>
@@ -1385,13 +1388,13 @@
     <div id="laserlink-share" style="display:none; text-align:center; width:min(440px, 92vw)">
       <div class="entry-heading eh-amber">SEND TO FRIEND</div>
       <textarea id="laserlink-message" readonly rows="3" style="margin-top:16px"></textarea>
-      <div id="laserlink-copy-status" style="color:var(--green);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;margin-top:8px"></div>
+      <div id="laserlink-copy-status" style="color:var(--amber);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;margin-top:8px"></div>
       <div class="entry-actions" style="margin-top:4px">
         <button class="menu-btn amber" id="btn-laserlink-copy">COPY</button>
         <button class="menu-btn green" id="btn-laserlink-share-native" style="display:none">SHARE</button>
       </div>
-      <div class="menu-buttons" style="margin-top:10px">
-        <button class="menu-btn amber" id="btn-laserlink-new">NEW WORD</button>
+      <div class="entry-actions" style="margin-top:10px">
+        <button class="menu-btn" id="btn-laserlink-new">NEW WORD</button>
         <button class="menu-btn purple" id="btn-laserlink-done">MAIN MENU</button>
       </div>
     </div>
@@ -4270,7 +4273,8 @@
     }
 
     function onlineNameContinue() {
-      const name = document.getElementById('online-name-input').value.trim().toUpperCase();
+      // Preserve user's case (they can have "Mike" instead of forced "MIKE")
+      const name = document.getElementById('online-name-input').value.trim();
       if (!name) {
         document.getElementById('online-name-input').focus();
         return;
@@ -4523,7 +4527,8 @@
     onTap(document.getElementById('btn-online'), goToOnlineLobby);
     onTap(document.getElementById('btn-name-continue'), onlineNameContinue);
     document.getElementById('online-name-input').addEventListener('input', (e) => {
-      e.target.value = e.target.value.replace(/[^a-zA-Z0-9 ]/g, '').toUpperCase();
+      // Allow lowercase — only strip disallowed characters
+      e.target.value = e.target.value.replace(/[^a-zA-Z0-9 ]/g, '');
     });
     document.getElementById('online-name-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') onlineNameContinue();
@@ -4532,14 +4537,16 @@
     onTap(document.getElementById('btn-join'), joinGame);
     onTap(document.getElementById('btn-join-connect'), connectToHost);
     document.getElementById('join-code-input').addEventListener('input', (e) => {
-      e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3);
+      // Allow lowercase visually — uppercased internally on connect
+      e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
       document.getElementById('join-error').textContent = '';
     });
     document.getElementById('join-code-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') connectToHost();
     });
     document.getElementById('host-word-input').addEventListener('input', (e) => {
-      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
+      // Allow lowercase visually — uppercased on submit for game logic
+      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
       document.getElementById('host-word-error').textContent = '';
     });
     onTap(document.getElementById('btn-host-start'), hostSendWord);
@@ -4550,7 +4557,8 @@
     onTap(document.getElementById('btn-host-guess'), hostPicksGuess);
     onTap(document.getElementById('btn-joiner-start'), joinerSendWord);
     document.getElementById('joiner-word-input').addEventListener('input', (e) => {
-      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
+      // Allow lowercase visually — uppercased on submit for game logic
+      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
       document.getElementById('joiner-word-error').textContent = '';
     });
     document.getElementById('joiner-word-input').addEventListener('keydown', (e) => {
@@ -4843,6 +4851,18 @@
       } catch(e) { return null; }
     }
 
+    // Try to shorten a URL via is.gd. Returns the shortened URL, or null on failure/timeout.
+    async function shortenUrl(url) {
+      try {
+        const resp = await fetch('https://is.gd/create.php?format=json&url=' + encodeURIComponent(url));
+        if (!resp.ok) return null;
+        const data = await resp.json();
+        return data && data.shorturl ? data.shorturl : null;
+      } catch(e) {
+        return null;
+      }
+    }
+
     // --- Sender UI ---
     function goToLaserlink() {
       hideMessage();
@@ -4851,8 +4871,6 @@
       document.getElementById('laserlink-name-input').value = savedName;
       document.getElementById('laserlink-word-input').value = '';
       document.getElementById('laserlink-error').textContent = '';
-      document.getElementById('laserlink-word-input').type = 'password';
-      document.getElementById('laserlink-toggle-vis-btn').textContent = 'SHOW';
       document.getElementById('laserlink-compose').style.display = '';
       document.getElementById('laserlink-share').style.display = 'none';
       showScreen('laserlink-screen');
@@ -4864,17 +4882,14 @@
     onTap(document.getElementById('btn-laserlink'), goToLaserlink);
     onTap(document.getElementById('btn-laserlink-back'), goToMainMenu);
 
-    // Name input: sanitize
+    // Name input: sanitize (allow lowercase)
     document.getElementById('laserlink-name-input').addEventListener('input', (e) => {
-      e.target.value = e.target.value.replace(/[^a-zA-Z0-9 ]/g, '').toUpperCase();
+      e.target.value = e.target.value.replace(/[^a-zA-Z0-9 ]/g, '');
     });
 
-    // Word visibility toggle
-    onTap(document.getElementById('laserlink-toggle-vis-btn'), () => {
-      const input = document.getElementById('laserlink-word-input');
-      const btn = document.getElementById('laserlink-toggle-vis-btn');
-      if (input.type === 'password') { input.type = 'text'; btn.textContent = 'HIDE'; }
-      else { input.type = 'password'; btn.textContent = 'SHOW'; }
+    // Word input: sanitize (letters only, allow lowercase visually — uppercased for game logic)
+    document.getElementById('laserlink-word-input').addEventListener('input', (e) => {
+      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
     });
 
     // Enter on inputs triggers create
@@ -4884,17 +4899,38 @@
       });
     });
 
-    onTap(document.getElementById('btn-laserlink-create'), () => {
-      const name = document.getElementById('laserlink-name-input').value.trim().toUpperCase();
-      const word = document.getElementById('laserlink-word-input').value.trim().toUpperCase();
+    onTap(document.getElementById('btn-laserlink-create'), async () => {
+      const nameRaw = document.getElementById('laserlink-name-input').value.trim();
+      const wordRaw = document.getElementById('laserlink-word-input').value.trim();
+      const word = wordRaw.toUpperCase(); // game logic needs uppercase
       const err = document.getElementById('laserlink-error');
-      if (!name) { err.textContent = 'ENTER YOUR NAME'; return; }
+      if (!nameRaw) { err.textContent = 'ENTER YOUR NAME'; return; }
       if (word.length < 2) { err.textContent = 'WORD MUST BE AT LEAST 2 LETTERS'; return; }
       if (!/^[A-Z]+$/.test(word)) { err.textContent = 'LETTERS ONLY'; return; }
       err.textContent = '';
-      localStorage.setItem('laserman_online_name', name);
-      const url = buildLaserlinkUrl(word, name, selectedCharacter, selectedColor);
-      const message = name + ' has sent you a Laserlink! ' + url;
+      localStorage.setItem('laserman_online_name', nameRaw);
+
+      // Show loading state while trying to shorten
+      const btn = document.getElementById('btn-laserlink-create');
+      const originalText = btn.textContent;
+      btn.textContent = 'CREATING...';
+      btn.disabled = true;
+
+      const longUrl = buildLaserlinkUrl(word, nameRaw, selectedCharacter, selectedColor);
+      // Try to shorten (with 4s timeout) — silently fall back to long URL on failure
+      let finalUrl = longUrl;
+      try {
+        const shortUrl = await Promise.race([
+          shortenUrl(longUrl),
+          new Promise(r => setTimeout(() => r(null), 4000))
+        ]);
+        if (shortUrl) finalUrl = shortUrl;
+      } catch(e) {}
+
+      btn.textContent = originalText;
+      btn.disabled = false;
+
+      const message = nameRaw + ' has sent you a Laserlink! ' + finalUrl;
       document.getElementById('laserlink-message').value = message;
       document.getElementById('laserlink-copy-status').textContent = '';
       document.getElementById('laserlink-compose').style.display = 'none';
@@ -4910,7 +4946,7 @@
       try {
         await navigator.clipboard.writeText(msg);
         status.textContent = 'COPIED!';
-        status.style.color = 'var(--green)';
+        status.style.color = 'var(--amber)';
       } catch(e) {
         // Fallback: select the textarea
         const ta = document.getElementById('laserlink-message');
@@ -4918,7 +4954,7 @@
         try {
           document.execCommand('copy');
           status.textContent = 'COPIED!';
-          status.style.color = 'var(--green)';
+          status.style.color = 'var(--amber)';
         } catch(e2) {
           status.textContent = 'TAP & HOLD TO COPY';
           status.style.color = 'var(--amber)';
@@ -4937,8 +4973,6 @@
     onTap(document.getElementById('btn-laserlink-new'), () => {
       document.getElementById('laserlink-word-input').value = '';
       document.getElementById('laserlink-error').textContent = '';
-      document.getElementById('laserlink-word-input').type = 'password';
-      document.getElementById('laserlink-toggle-vis-btn').textContent = 'SHOW';
       document.getElementById('laserlink-compose').style.display = '';
       document.getElementById('laserlink-share').style.display = 'none';
       document.getElementById('laserlink-word-input').focus();
