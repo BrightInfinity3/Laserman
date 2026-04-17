@@ -613,6 +613,8 @@
       height: 16px;
       opacity: 0;
       transition: opacity 0.3s ease;
+      /* Pull up so skip-hint sits between canvas and show button, equal gap on both sides */
+      margin-top: -4px;
     }
     #skip-hint.visible {
       opacity: 1;
@@ -624,7 +626,8 @@
       align-items: center;
       gap: 10px;
       justify-content: center;
-      margin-top: -14px;
+      /* Match skip-hint margin so both rows have equal gap to canvas */
+      margin-top: -4px;
     }
     #category-text {
       font-family: 'Share Tech Mono', monospace;
@@ -659,7 +662,8 @@
       font-size: clamp(0.55rem, 1.5vw, 0.7rem);
       color: rgba(255, 170, 0, 0.7);
       letter-spacing: 2px;
-      margin-top: -14px;
+      /* Match category-row margin for mode-to-mode consistency */
+      margin-top: -4px;
     }
     #laserlink-sender-name {
       color: var(--amber);
@@ -912,7 +916,7 @@
       display: flex;
       gap: clamp(6px, 2vw, 12px);
       margin-top: clamp(1px, 0.4dvh, 4px);
-      max-width: 90vw;
+      width: min(380px, 90vw);
       justify-content: center;
     }
 
@@ -932,7 +936,12 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      max-width: 45vw;
+    }
+
+    /* Equal-width buttons within .game-buttons container */
+    .game-buttons .game-btn {
+      flex: 1;
+      min-width: 0;
     }
 
     .game-btn:active {
@@ -1022,11 +1031,7 @@
       .game-title.mode-label { font-size: 1.4rem; margin-bottom: 12px; }
     }
 
-    /* Options screen — override menu-subtitle negative margins (which were intended for title-screen only) */
-    #options-screen .menu-subtitle {
-      margin-top: 8px;
-      margin-bottom: 10px;
-    }
+    /* Options screen — SELECT CHARACTER / COLOR / PERFORMANCE labels use .color-label for consistent spacing */
 
     /* Touch devices: ensure finger-friendly targets */
     @media (pointer: coarse) {
@@ -1191,19 +1196,21 @@
   <!-- ===== OPTIONS SCREEN ===== -->
   <div id="options-screen" class="screen">
     <h1 class="game-title" style="font-size:2.2rem; margin-bottom:24px">OPTIONS</h1>
-    <div class="menu-subtitle">SELECT CHARACTER</div>
-    <div class="character-select">
-      <div class="char-option selected" data-char="laserman">
-        LASERMAN
-        <div class="char-lives">6 LIVES</div>
-      </div>
-      <div class="char-option" data-char="laserwoman">
-        LASERWOMAN
-        <div class="char-lives">8 LIVES</div>
-      </div>
-      <div class="char-option" data-char="lasercat">
-        LASERCAT
-        <div class="char-lives">9 LIVES</div>
+    <div class="color-section">
+      <div class="color-label">SELECT CHARACTER</div>
+      <div class="character-select">
+        <div class="char-option selected" data-char="laserman">
+          LASERMAN
+          <div class="char-lives">6 LIVES</div>
+        </div>
+        <div class="char-option" data-char="laserwoman">
+          LASERWOMAN
+          <div class="char-lives">8 LIVES</div>
+        </div>
+        <div class="char-option" data-char="lasercat">
+          LASERCAT
+          <div class="char-lives">9 LIVES</div>
+        </div>
       </div>
     </div>
     <div class="color-section">
