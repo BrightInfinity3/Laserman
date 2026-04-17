@@ -31,6 +31,13 @@ Laserman is a hangman-style word guessing game with a cyberpunk/neon aesthetic, 
 - Online sub-containers (`host-word-entry`, `host-role-choice`, etc.) have explicit `text-align:center`
 - Always ensure new UI elements are centered — never left-align content within screens
 
+## Dictionaries
+- **`laserman-solo-dictionary.xlsx`** — curated word list used by Solo mode (categorized by Technology / Space / Science / Gaming / Cinema / Adventure / Nature). Mirrors the `WORDS` object hard-coded in `Laserman.html`.
+- **`laserman-master-dictionary.xlsx`** — master English word list (~370k words, 2\u201320 chars, all inflections). Sheets: About / All Words / By First Letter / Stats. Source: dwyl/english-words (words_alpha.txt).
+- **`laserman-master-dictionary.txt`** — plain-text mirror of the master Excel (one word per line, UPPERCASE). The game fetches this file at runtime when the "USE LASERMAN DICTIONARY" toggle is on. Must be deployed alongside `laserman.html` (GitHub Pages, wbcgamez/public/laserman/, ladybug-gamez/public/laserman/).
+- **Dictionary toggle** — `data-dict-toggle` checkboxes live on Multiplayer / Online host / Online joiner / Laserlink compose screens. State is shared via `useLasermanDict` (localStorage key `laserman_use_dict`). When on, word submissions are validated against the master dictionary; invalid words show `"WORD" NOT IN LASERMAN DICTIONARY` and block submission.
+- **Dictionary loading** — lazy: `loadLasermanDictionary()` fetches on first toggle-enable or first submission. De-duped via `dictionaryLoadPromise`. Cached as `Set<string>` in memory. Fetch uses `cache: 'force-cache'` for browser caching. On fetch failure the validator returns `true` (don't block users).
+
 ## Laserlink Details
 - **Async mode** — sender creates a word; receiver opens a URL to play it. No WebRTC, no active connection.
 - **URL format**: `<origin><path>?ll=<base64url(payload)>`. Payload is pipe-separated: `WORD|NAME|CHAR_INDEX|COLOR_INDEX` (e.g., `TEST|GMK|0|0`). Character indices: 0=laserman, 1=laserwoman, 2=lasercat. Color indices: 0=green, 1=blue, 2=yellow. Falls back to JSON parse for backward compat.

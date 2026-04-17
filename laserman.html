@@ -132,6 +132,22 @@
       0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--cyan), 0 0 40px var(--cyan), 0 0 80px var(--cyan); }
       50% { text-shadow: 0 0 5px #fff, 0 0 15px #fff, 0 0 30px var(--cyan), 0 0 60px var(--cyan), 0 0 100px var(--cyan), 0 0 140px rgba(0, 240, 255, 0.3); }
     }
+    @keyframes titlePulsePurple {
+      0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--purple), 0 0 40px var(--purple), 0 0 80px var(--purple); }
+      50% { text-shadow: 0 0 5px #fff, 0 0 15px #fff, 0 0 30px var(--purple), 0 0 60px var(--purple), 0 0 100px var(--purple), 0 0 140px rgba(123, 47, 255, 0.3); }
+    }
+    @keyframes titlePulseGreen {
+      0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--green), 0 0 40px var(--green), 0 0 80px var(--green); }
+      50% { text-shadow: 0 0 5px #fff, 0 0 15px #fff, 0 0 30px var(--green), 0 0 60px var(--green), 0 0 100px var(--green), 0 0 140px rgba(0, 255, 136, 0.3); }
+    }
+    @keyframes titlePulseAmber {
+      0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--amber), 0 0 40px var(--amber), 0 0 80px var(--amber); }
+      50% { text-shadow: 0 0 5px #fff, 0 0 15px #fff, 0 0 30px var(--amber), 0 0 60px var(--amber), 0 0 100px var(--amber), 0 0 140px rgba(255, 170, 0, 0.3); }
+    }
+    @keyframes titlePulseWhite {
+      0%, 100% { text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.6), 0 0 80px rgba(255,255,255,0.4); }
+      50% { text-shadow: 0 0 5px #fff, 0 0 15px #fff, 0 0 30px rgba(255,255,255,0.9), 0 0 60px rgba(255,255,255,0.7), 0 0 100px rgba(255,255,255,0.5), 0 0 140px rgba(255, 255, 255, 0.3); }
+    }
 
     /* ===== TITLE SCREEN ===== */
     #title-screen {
@@ -155,23 +171,27 @@
       margin-bottom: -20px;
     }
 
-    /* Mode subtitle titles (ONLINE, MULTIPLAYER, LASERLINK) */
+    /* Mode title (ONLINE, MULTIPLAYER, LASERLINK, OPTIONS) — white text with colored pulse glow, matching LASERMAN home-page feel */
     .game-title.mode-label {
-      font-size: 2.2rem;
-      animation: none;
+      font-size: 3.2rem;
       margin-bottom: 24px;
+      color: #fff;
     }
     .game-title.mode-label.ml-green {
-      color: var(--green);
-      text-shadow: 0 0 10px rgba(0,255,136,0.8), 0 0 24px rgba(0,255,136,0.4);
+      text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--green), 0 0 40px var(--green), 0 0 80px var(--green), 0 0 120px rgba(0, 255, 136, 0.4);
+      animation: titlePulseGreen 3s ease-in-out infinite;
     }
     .game-title.mode-label.ml-purple {
-      color: var(--purple);
-      text-shadow: 0 0 10px rgba(123,47,255,0.8), 0 0 24px rgba(123,47,255,0.4);
+      text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--purple), 0 0 40px var(--purple), 0 0 80px var(--purple), 0 0 120px rgba(123, 47, 255, 0.4);
+      animation: titlePulsePurple 3s ease-in-out infinite;
     }
     .game-title.mode-label.ml-amber {
-      color: var(--amber);
-      text-shadow: 0 0 10px rgba(255,170,0,0.8), 0 0 24px rgba(255,170,0,0.4);
+      text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px var(--amber), 0 0 40px var(--amber), 0 0 80px var(--amber), 0 0 120px rgba(255, 170, 0, 0.4);
+      animation: titlePulseAmber 3s ease-in-out infinite;
+    }
+    .game-title.mode-label.ml-white {
+      text-shadow: 0 0 5px #fff, 0 0 10px #fff, 0 0 20px rgba(255,255,255,0.8), 0 0 40px rgba(255,255,255,0.6), 0 0 80px rgba(255,255,255,0.4), 0 0 120px rgba(255, 255, 255, 0.3);
+      animation: titlePulseWhite 3s ease-in-out infinite;
     }
 
     /* Entry heading color variants */
@@ -480,8 +500,12 @@
       transition: all 0.3s ease;
     }
 
-    /* Only multiplayer's #word-input auto-uppercases. Online/Laserlink (.word-input-styled) preserve case. */
-    #word-input { text-transform: uppercase; }
+    /* Word and room-code inputs auto-uppercase; name inputs preserve case. */
+    #word-input,
+    #host-word-input,
+    #joiner-word-input,
+    #laserlink-word-input,
+    #join-code-input { text-transform: uppercase; }
 
     #word-input:focus, .word-input-styled:focus {
       border-color: var(--cyan);
@@ -544,6 +568,66 @@
       letter-spacing: 2px;
       min-height: 1.2em;
       margin-top: 6px;
+    }
+
+    /* ===== DICTIONARY TOGGLE ===== */
+    .dict-toggle {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.65rem;
+      letter-spacing: 2px;
+      color: rgba(0, 240, 255, 0.55);
+      user-select: none;
+      margin-top: 4px;
+      padding: 4px 0;
+    }
+    .dict-toggle-input {
+      position: absolute;
+      opacity: 0;
+      pointer-events: none;
+      width: 0;
+      height: 0;
+    }
+    .dict-toggle-mark {
+      width: 32px;
+      height: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      border-radius: 10px;
+      position: relative;
+      flex-shrink: 0;
+      transition: all 0.2s ease;
+    }
+    .dict-toggle-mark::before {
+      content: '';
+      width: 12px;
+      height: 12px;
+      background: rgba(0, 240, 255, 0.45);
+      border-radius: 50%;
+      position: absolute;
+      top: 2px;
+      left: 2px;
+      transition: all 0.2s ease;
+    }
+    .dict-toggle-input:checked + .dict-toggle-mark {
+      background: rgba(0, 240, 255, 0.12);
+      border-color: var(--cyan);
+      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
+    }
+    .dict-toggle-input:checked + .dict-toggle-mark::before {
+      left: 16px;
+      background: var(--cyan);
+      box-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
+    }
+    .dict-toggle:hover .dict-toggle-mark {
+      border-color: rgba(0, 240, 255, 0.55);
+    }
+    .dict-toggle-input:focus-visible + .dict-toggle-mark {
+      outline: 2px solid rgba(0, 240, 255, 0.5);
+      outline-offset: 2px;
     }
 
     .entry-actions {
@@ -1013,7 +1097,7 @@
     @media (max-width: 600px) {
       .game-title { font-size: 2rem; letter-spacing: 4px; }
       #title-screen .game-title, .game-title.title-size { font-size: 2.6rem; }
-      .game-title.mode-label { font-size: 1.6rem; letter-spacing: 4px; margin-bottom: 16px; }
+      .game-title.mode-label { font-size: 2.2rem; letter-spacing: 4px; margin-bottom: 20px; }
       .menu-btn { width: 260px; font-size: 0.9rem; padding: 14px 30px; }
       .char-option { width: 260px; font-size: 0.8rem; padding: 12px 25px; }
       #word-input, .word-input-styled { font-size: 1.2rem; }
@@ -1028,7 +1112,7 @@
       .char-option { width: 220px; font-size: 0.7rem; padding: 10px 20px; }
       .word-input-row, .entry-actions { width: min(280px, 92vw); }
       .word-input-row.narrow { width: min(220px, 92vw); }
-      .game-title.mode-label { font-size: 1.4rem; margin-bottom: 12px; }
+      .game-title.mode-label { font-size: 1.8rem; margin-bottom: 14px; }
     }
 
     /* Options screen — SELECT CHARACTER / COLOR / PERFORMANCE labels use .color-label for consistent spacing */
@@ -1195,7 +1279,7 @@
 
   <!-- ===== OPTIONS SCREEN ===== -->
   <div id="options-screen" class="screen">
-    <h1 class="game-title" style="font-size:2.2rem; margin-bottom:24px">OPTIONS</h1>
+    <h1 class="game-title mode-label ml-white">OPTIONS</h1>
     <div class="color-section">
       <div class="color-label">SELECT CHARACTER</div>
       <div class="character-select">
@@ -1234,7 +1318,6 @@
 
   <!-- ===== WORD ENTRY SCREEN ===== -->
   <div id="word-entry-screen" class="screen">
-    <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
     <h1 class="game-title mode-label ml-purple">MULTIPLAYER</h1>
     <div id="multi-entry" style="text-align:center">
       <div class="entry-heading">ENTER TARGET WORD</div>
@@ -1243,6 +1326,11 @@
         <button id="toggle-vis-btn">HIDE</button>
       </div>
       <div id="word-error" class="error-line"></div>
+      <label class="dict-toggle">
+        <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
+        <span class="dict-toggle-mark"></span>
+        <span>USE LASERMAN DICTIONARY</span>
+      </label>
       <div class="menu-buttons" style="margin-top:8px">
         <button class="menu-btn" id="btn-start-multi">START</button>
         <button class="menu-btn purple" id="btn-entry-back">MAIN MENU</button>
@@ -1252,7 +1340,6 @@
 
   <!-- ===== ONLINE LOBBY SCREEN ===== -->
   <div id="online-screen" class="screen">
-    <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
     <h1 class="game-title mode-label ml-green">ONLINE</h1>
 
     <!-- Name entry (shown first) -->
@@ -1312,9 +1399,14 @@
           </div>
         </div>
         <div class="word-input-row">
-          <input type="text" id="host-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off">
+          <input type="text" id="host-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
         </div>
-        <div id="host-word-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;"></div>
+        <div id="host-word-error" class="error-line"></div>
+        <label class="dict-toggle">
+          <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
+          <span class="dict-toggle-mark"></span>
+          <span>USE LASERMAN DICTIONARY</span>
+        </label>
         <button class="menu-btn" id="btn-host-start" style="margin-top:8px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">SEND WORD</button>
       </div>
     </div>
@@ -1323,7 +1415,7 @@
     <div id="online-join-view" style="display:none;text-align:center">
       <div class="entry-heading eh-green">ENTER ROOM CODE</div>
       <div class="word-input-row narrow" style="justify-content:center;margin-top:16px">
-        <input type="text" id="join-code-input" placeholder="CODE..." maxlength="3" autocomplete="off" spellcheck="false" autocorrect="off" style="letter-spacing:6px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:1.4rem;background:rgba(0,240,255,0.04);border:1px solid rgba(0,240,255,0.25);border-radius:6px;color:var(--cyan);padding:12px 16px;width:100%;box-sizing:border-box">
+        <input type="text" id="join-code-input" placeholder="CODE..." maxlength="3" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters" style="letter-spacing:6px;text-align:center;font-family:'Share Tech Mono',monospace;font-size:1.4rem;background:rgba(0,240,255,0.04);border:1px solid rgba(0,240,255,0.25);border-radius:6px;color:var(--cyan);padding:12px 16px;width:100%;box-sizing:border-box">
       </div>
       <div id="join-error" class="error-line"></div>
       <div class="menu-buttons" style="margin-top:8px">
@@ -1360,9 +1452,14 @@
         </div>
       </div>
       <div class="word-input-row">
-        <input type="text" id="joiner-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off">
+        <input type="text" id="joiner-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
       </div>
-      <div id="joiner-word-error" style="color:var(--red);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;"></div>
+      <div id="joiner-word-error" class="error-line"></div>
+      <label class="dict-toggle">
+        <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
+        <span class="dict-toggle-mark"></span>
+        <span>USE LASERMAN DICTIONARY</span>
+      </label>
       <button class="menu-btn" id="btn-joiner-start" style="margin-top:8px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">SEND WORD</button>
     </div>
 
@@ -1371,7 +1468,6 @@
 
   <!-- ===== LASERLINK SCREEN ===== -->
   <div id="laserlink-screen" class="screen">
-    <h1 class="game-title title-size" style="margin-bottom:4px">LASERMAN</h1>
     <h1 class="game-title mode-label ml-amber">LASERLINK</h1>
 
     <!-- Compose view -->
@@ -1382,9 +1478,14 @@
       </div>
       <div class="entry-heading eh-amber" style="margin-top:24px">ENTER TARGET WORD</div>
       <div class="word-input-row" style="justify-content:center;margin-top:16px">
-        <input type="text" id="laserlink-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off">
+        <input type="text" id="laserlink-word-input" class="word-input-styled" placeholder="TYPE WORD..." maxlength="20" autocomplete="off" spellcheck="false" autocorrect="off" autocapitalize="characters">
       </div>
       <div id="laserlink-error" class="error-line"></div>
+      <label class="dict-toggle">
+        <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
+        <span class="dict-toggle-mark"></span>
+        <span>USE LASERMAN DICTIONARY</span>
+      </label>
       <div class="menu-buttons" style="margin-top:8px">
         <button class="menu-btn amber" id="btn-laserlink-create">CREATE LINK</button>
         <button class="menu-btn purple" id="btn-laserlink-back">MAIN MENU</button>
@@ -1575,6 +1676,61 @@
     // Migrate old 'medium' tier to 'high'
     if (!PERF_PRESETS[perfTier]) perfTier = 'high';
     let PERF = { ...PERF_PRESETS[perfTier] };
+
+    // ===========================
+    // LASERMAN DICTIONARY (validation)
+    // ===========================
+    // When the "USE LASERMAN DICTIONARY" toggle is on, word submissions in
+    // Multiplayer / Online / Laserlink are validated against the master word list.
+    let lasermanDictionary = null;      // Set<string> once loaded
+    let dictionaryLoadPromise = null;   // de-dup concurrent fetches
+    let useLasermanDict = localStorage.getItem('laserman_use_dict') === 'true';
+
+    function loadLasermanDictionary() {
+      if (lasermanDictionary) return Promise.resolve(lasermanDictionary);
+      if (dictionaryLoadPromise) return dictionaryLoadPromise;
+      dictionaryLoadPromise = fetch('laserman-master-dictionary.txt', { cache: 'force-cache' })
+        .then(r => {
+          if (!r.ok) throw new Error('Failed to fetch dictionary: ' + r.status);
+          return r.text();
+        })
+        .then(text => {
+          const words = text.split('\n').map(l => l.trim()).filter(Boolean);
+          lasermanDictionary = new Set(words);
+          return lasermanDictionary;
+        })
+        .catch(e => {
+          console.warn('Dictionary load failed:', e);
+          dictionaryLoadPromise = null;  // allow retry
+          return null;
+        });
+      return dictionaryLoadPromise;
+    }
+
+    // Validate a word against the dictionary. Returns:
+    //   true  → word is valid (or toggle is off, or dict failed to load)
+    //   false → word is not in dictionary
+    //   'loading' → dict still loading, caller should wait
+    async function validateWordAgainstDict(word) {
+      if (!useLasermanDict) return true;
+      const dict = await loadLasermanDictionary();
+      if (!dict) return true;  // load failed — don't block the user
+      return dict.has(String(word).toUpperCase());
+    }
+
+    // Keep every dict toggle checkbox in sync with the current state
+    function syncDictToggles() {
+      document.querySelectorAll('[data-dict-toggle]').forEach(el => {
+        el.checked = useLasermanDict;
+      });
+    }
+
+    function setUseLasermanDict(val) {
+      useLasermanDict = !!val;
+      localStorage.setItem('laserman_use_dict', String(useLasermanDict));
+      syncDictToggles();
+      if (useLasermanDict) loadLasermanDictionary();  // warm the cache
+    }
 
     function applyPerfTier(tier) {
       perfTier = tier;
@@ -4392,15 +4548,27 @@
       });
     }
 
-    function hostSendWord() {
+    async function hostSendWord() {
       const word = document.getElementById('host-word-input').value.trim().toUpperCase();
+      const errEl = document.getElementById('host-word-error');
       if (word.length < 2) {
-        document.getElementById('host-word-error').textContent = 'WORD MUST BE AT LEAST 2 LETTERS';
+        errEl.textContent = 'WORD MUST BE AT LEAST 2 LETTERS';
         return;
       }
       if (!/^[A-Z]+$/.test(word)) {
-        document.getElementById('host-word-error').textContent = 'LETTERS ONLY';
+        errEl.textContent = 'LETTERS ONLY';
         return;
+      }
+      if (useLasermanDict) {
+        errEl.textContent = 'CHECKING DICTIONARY...';
+        errEl.style.color = 'var(--amber)';
+        const ok = await validateWordAgainstDict(word);
+        errEl.style.color = '';
+        if (!ok) {
+          errEl.textContent = '"' + word + '" NOT IN LASERMAN DICTIONARY';
+          return;
+        }
+        errEl.textContent = '';
       }
       // Send word to joiner (joiner guesses)
       onlineGuesserName = onlineOpponentName; // joiner is guessing
@@ -4412,15 +4580,27 @@
       onlineSend({ type: 'start-game', word: word, character: selectedCharacter, color: selectedColor, shotOrder: shotOrder, hairFromRight: hairFromRight });
     }
 
-    function joinerSendWord() {
+    async function joinerSendWord() {
       const word = document.getElementById('joiner-word-input').value.trim().toUpperCase();
+      const errEl = document.getElementById('joiner-word-error');
       if (word.length < 2) {
-        document.getElementById('joiner-word-error').textContent = 'WORD MUST BE AT LEAST 2 LETTERS';
+        errEl.textContent = 'WORD MUST BE AT LEAST 2 LETTERS';
         return;
       }
       if (!/^[A-Z]+$/.test(word)) {
-        document.getElementById('joiner-word-error').textContent = 'LETTERS ONLY';
+        errEl.textContent = 'LETTERS ONLY';
         return;
+      }
+      if (useLasermanDict) {
+        errEl.textContent = 'CHECKING DICTIONARY...';
+        errEl.style.color = 'var(--amber)';
+        const ok = await validateWordAgainstDict(word);
+        errEl.style.color = '';
+        if (!ok) {
+          errEl.textContent = '"' + word + '" NOT IN LASERMAN DICTIONARY';
+          return;
+        }
+        errEl.textContent = '';
       }
       // Send word to host (host guesses)
       onlineGuesserName = onlineOpponentName; // host is guessing
@@ -4544,16 +4724,14 @@
     onTap(document.getElementById('btn-join'), joinGame);
     onTap(document.getElementById('btn-join-connect'), connectToHost);
     document.getElementById('join-code-input').addEventListener('input', (e) => {
-      // Allow lowercase visually — uppercased internally on connect
-      e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 3);
+      e.target.value = e.target.value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 3);
       document.getElementById('join-error').textContent = '';
     });
     document.getElementById('join-code-input').addEventListener('keydown', (e) => {
       if (e.key === 'Enter') connectToHost();
     });
     document.getElementById('host-word-input').addEventListener('input', (e) => {
-      // Allow lowercase visually — uppercased on submit for game logic
-      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
+      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
       document.getElementById('host-word-error').textContent = '';
     });
     onTap(document.getElementById('btn-host-start'), hostSendWord);
@@ -4564,8 +4742,7 @@
     onTap(document.getElementById('btn-host-guess'), hostPicksGuess);
     onTap(document.getElementById('btn-joiner-start'), joinerSendWord);
     document.getElementById('joiner-word-input').addEventListener('input', (e) => {
-      // Allow lowercase visually — uppercased on submit for game logic
-      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
+      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
       document.getElementById('joiner-word-error').textContent = '';
     });
     document.getElementById('joiner-word-input').addEventListener('keydown', (e) => {
@@ -4707,11 +4884,27 @@
       }
     });
 
-    onTap(document.getElementById('btn-start-multi'), () => {
-      const word = document.getElementById('word-input').value.trim();
+    onTap(document.getElementById('btn-start-multi'), async () => {
+      const word = document.getElementById('word-input').value.trim().toUpperCase();
+      const errEl = document.getElementById('word-error');
       if (word.length < 2) {
-        document.getElementById('word-error').textContent = 'WORD MUST BE AT LEAST 2 LETTERS';
+        errEl.textContent = 'WORD MUST BE AT LEAST 2 LETTERS';
         return;
+      }
+      if (!/^[A-Z]+$/.test(word)) {
+        errEl.textContent = 'LETTERS ONLY';
+        return;
+      }
+      if (useLasermanDict) {
+        errEl.textContent = 'CHECKING DICTIONARY...';
+        errEl.style.color = 'var(--amber)';
+        const ok = await validateWordAgainstDict(word);
+        errEl.style.color = '';
+        if (!ok) {
+          errEl.textContent = '"' + word + '" NOT IN LASERMAN DICTIONARY';
+          return;
+        }
+        errEl.textContent = '';
       }
       startGame(word);
     });
@@ -4894,9 +5087,9 @@
       e.target.value = e.target.value.replace(/[^a-zA-Z0-9 ]/g, '');
     });
 
-    // Word input: sanitize (letters only, allow lowercase visually — uppercased for game logic)
+    // Word input: sanitize (letters only, force uppercase)
     document.getElementById('laserlink-word-input').addEventListener('input', (e) => {
-      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '');
+      e.target.value = e.target.value.replace(/[^a-zA-Z]/g, '').toUpperCase();
     });
 
     // Enter on inputs triggers create
@@ -4915,6 +5108,17 @@
       if (word.length < 2) { err.textContent = 'WORD MUST BE AT LEAST 2 LETTERS'; return; }
       if (!/^[A-Z]+$/.test(word)) { err.textContent = 'LETTERS ONLY'; return; }
       err.textContent = '';
+      if (useLasermanDict) {
+        err.textContent = 'CHECKING DICTIONARY...';
+        err.style.color = 'var(--amber)';
+        const dictOk = await validateWordAgainstDict(word);
+        err.style.color = '';
+        if (!dictOk) {
+          err.textContent = '"' + word + '" NOT IN LASERMAN DICTIONARY';
+          return;
+        }
+        err.textContent = '';
+      }
       localStorage.setItem('laserman_online_name', nameRaw);
 
       // Show loading state while trying to shorten
@@ -5010,6 +5214,13 @@
 
     // Apply performance tier (toggles CSS overlays, sets star count)
     applyPerfTier(perfTier);
+
+    // Wire up every dictionary toggle to the shared state; all stay in sync.
+    document.querySelectorAll('[data-dict-toggle]').forEach(el => {
+      el.addEventListener('change', (e) => setUseLasermanDict(e.target.checked));
+    });
+    syncDictToggles();
+    if (useLasermanDict) loadLasermanDictionary();  // warm the cache on startup if enabled
 
     // Check for LASERLINK URL param — if present, jump straight to game
     const _laserlinkInfo = parseLaserlinkUrl();
