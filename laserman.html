@@ -570,7 +570,37 @@
       margin-top: 6px;
     }
 
-    /* ===== DICTIONARY TOGGLE ===== */
+    /* ===== DICTIONARY CHECK/X BOX — shared between toggle (input screens) and indicator (game screen) ===== */
+    .dict-box {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      border: 1px solid;
+      border-radius: 4px;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      line-height: 1;
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .dict-box.dict-ok {
+      border-color: var(--cyan);
+      color: var(--cyan);
+      text-shadow: 0 0 6px rgba(0, 240, 255, 0.5);
+      box-shadow: 0 0 6px rgba(0, 240, 255, 0.25);
+    }
+    .dict-box.dict-bad {
+      border-color: var(--red);
+      color: var(--red);
+      text-shadow: 0 0 6px rgba(255, 0, 68, 0.5);
+      box-shadow: 0 0 6px rgba(255, 0, 68, 0.25);
+    }
+    .dict-box.dict-pending {
+      border-color: rgba(255, 255, 255, 0.25);
+      color: rgba(255, 255, 255, 0.35);
+    }
+
+    /* Toggle on word input screens */
     .dict-toggle {
       display: inline-flex;
       align-items: center;
@@ -591,43 +621,35 @@
       width: 0;
       height: 0;
     }
-    .dict-toggle-mark {
-      width: 32px;
-      height: 18px;
-      background: rgba(255, 255, 255, 0.05);
-      border: 1px solid rgba(0, 240, 255, 0.35);
-      border-radius: 10px;
-      position: relative;
-      flex-shrink: 0;
-      transition: all 0.2s ease;
+    .dict-toggle .dict-box {
+      width: 22px;
+      height: 22px;
+      font-size: 0.85rem;
     }
-    .dict-toggle-mark::before {
-      content: '';
-      width: 12px;
-      height: 12px;
-      background: rgba(0, 240, 255, 0.45);
-      border-radius: 50%;
-      position: absolute;
-      top: 2px;
-      left: 2px;
-      transition: all 0.2s ease;
+    .dict-toggle:hover .dict-box {
+      filter: brightness(1.15);
     }
-    .dict-toggle-input:checked + .dict-toggle-mark {
-      background: rgba(0, 240, 255, 0.12);
-      border-color: var(--cyan);
-      box-shadow: 0 0 8px rgba(0, 240, 255, 0.3);
-    }
-    .dict-toggle-input:checked + .dict-toggle-mark::before {
-      left: 16px;
-      background: var(--cyan);
-      box-shadow: 0 0 6px rgba(0, 240, 255, 0.6);
-    }
-    .dict-toggle:hover .dict-toggle-mark {
-      border-color: rgba(0, 240, 255, 0.55);
-    }
-    .dict-toggle-input:focus-visible + .dict-toggle-mark {
+    .dict-toggle-input:focus-visible + .dict-box {
       outline: 2px solid rgba(0, 240, 255, 0.5);
       outline-offset: 2px;
+    }
+
+    /* Indicator on game screen */
+    #dict-indicator-row {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(0.55rem, 1.5vw, 0.7rem);
+      color: rgba(0, 240, 255, 0.45);
+      letter-spacing: 2px;
+      margin-top: -4px;
+    }
+    #dict-indicator-row .dict-box {
+      width: 16px;
+      height: 16px;
+      font-size: 0.65rem;
     }
 
     .entry-actions {
@@ -773,8 +795,11 @@
       resize: none;
       outline: none;
       letter-spacing: 1px;
-      word-break: break-all;
+      /* Break long URLs only when they genuinely don't fit — keep short messages on one line */
+      overflow-wrap: anywhere;
+      word-break: normal;
       box-sizing: border-box;
+      overflow: hidden; /* JS auto-sizes height to content */
     }
     #laserlink-message:focus {
       border-color: var(--amber);
@@ -1328,7 +1353,7 @@
       <div id="word-error" class="error-line"></div>
       <label class="dict-toggle">
         <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
-        <span class="dict-toggle-mark"></span>
+        <span class="dict-box dict-ok" data-dict-box>&#10003;</span>
         <span>USE LASERMAN DICTIONARY</span>
       </label>
       <div class="menu-buttons" style="margin-top:8px">
@@ -1404,7 +1429,7 @@
         <div id="host-word-error" class="error-line"></div>
         <label class="dict-toggle">
           <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
-          <span class="dict-toggle-mark"></span>
+          <span class="dict-box dict-ok" data-dict-box>&#10003;</span>
           <span>USE LASERMAN DICTIONARY</span>
         </label>
         <button class="menu-btn" id="btn-host-start" style="margin-top:8px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">SEND WORD</button>
@@ -1457,7 +1482,7 @@
       <div id="joiner-word-error" class="error-line"></div>
       <label class="dict-toggle">
         <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
-        <span class="dict-toggle-mark"></span>
+        <span class="dict-box dict-ok" data-dict-box>&#10003;</span>
         <span>USE LASERMAN DICTIONARY</span>
       </label>
       <button class="menu-btn" id="btn-joiner-start" style="margin-top:8px;border-color:var(--green);color:var(--green);text-shadow:0 0 8px rgba(0,255,136,0.4)">SEND WORD</button>
@@ -1483,7 +1508,7 @@
       <div id="laserlink-error" class="error-line"></div>
       <label class="dict-toggle">
         <input type="checkbox" class="dict-toggle-input" data-dict-toggle>
-        <span class="dict-toggle-mark"></span>
+        <span class="dict-box dict-ok" data-dict-box>&#10003;</span>
         <span>USE LASERMAN DICTIONARY</span>
       </label>
       <div class="menu-buttons" style="margin-top:8px">
@@ -1493,9 +1518,9 @@
     </div>
 
     <!-- Share view -->
-    <div id="laserlink-share" style="display:none; text-align:center; width:min(440px, 92vw)">
+    <div id="laserlink-share" style="display:none; text-align:center; width:min(640px, 92vw)">
       <div class="entry-heading eh-amber">SEND TO FRIEND</div>
-      <textarea id="laserlink-message" readonly rows="3" style="margin-top:16px"></textarea>
+      <textarea id="laserlink-message" readonly rows="1" style="margin-top:16px"></textarea>
       <div id="laserlink-copy-status" style="color:var(--amber);font-family:'Orbitron',sans-serif;font-size:0.7rem;letter-spacing:2px;min-height:1.2em;margin-top:8px"></div>
       <div class="entry-actions" style="margin-top:4px">
         <button class="menu-btn amber" id="btn-laserlink-copy">COPY</button>
@@ -1528,6 +1553,10 @@
     </div>
     <div id="laserlink-sender-row" style="display:none">
       <span id="laserlink-sender-text">LASERLINK FROM <span id="laserlink-sender-name"></span></span>
+    </div>
+    <div id="dict-indicator-row">
+      <span>LASERMAN DICTIONARY WORD?</span>
+      <span class="dict-box dict-pending" id="dict-indicator-check">&#8230;</span>
     </div>
     <div id="word-display"></div>
     <div id="keyboard"></div>
@@ -1684,7 +1713,9 @@
     // Multiplayer / Online / Laserlink are validated against the master word list.
     let lasermanDictionary = null;      // Set<string> once loaded
     let dictionaryLoadPromise = null;   // de-dup concurrent fetches
-    let useLasermanDict = localStorage.getItem('laserman_use_dict') === 'true';
+    // Default to ON for first-time users; respect the user's explicit choice once saved.
+    const _savedUseDict = localStorage.getItem('laserman_use_dict');
+    let useLasermanDict = _savedUseDict === null ? true : _savedUseDict === 'true';
 
     function loadLasermanDictionary() {
       if (lasermanDictionary) return Promise.resolve(lasermanDictionary);
@@ -1718,10 +1749,21 @@
       return dict.has(String(word).toUpperCase());
     }
 
-    // Keep every dict toggle checkbox in sync with the current state
+    // Keep every dict toggle checkbox AND its adjacent check/x box in sync with the current state
     function syncDictToggles() {
       document.querySelectorAll('[data-dict-toggle]').forEach(el => {
         el.checked = useLasermanDict;
+      });
+      document.querySelectorAll('[data-dict-box]').forEach(el => {
+        if (useLasermanDict) {
+          el.classList.remove('dict-bad');
+          el.classList.add('dict-ok');
+          el.innerHTML = '&#10003;';  // check mark
+        } else {
+          el.classList.remove('dict-ok');
+          el.classList.add('dict-bad');
+          el.innerHTML = '&#10007;';  // x mark
+        }
       });
     }
 
@@ -1730,6 +1772,37 @@
       localStorage.setItem('laserman_use_dict', String(useLasermanDict));
       syncDictToggles();
       if (useLasermanDict) loadLasermanDictionary();  // warm the cache
+    }
+
+    // Updates the "LASERMAN DICTIONARY WORD?" indicator on the game screen.
+    // Always shows on the game screen; shows "..." while the dictionary loads,
+    // then cyan check for in-dict / red x for not-in-dict.
+    function updateDictIndicator(word) {
+      const row = document.getElementById('dict-indicator-row');
+      const mark = document.getElementById('dict-indicator-check');
+      if (!row || !mark || !word) return;
+      row.style.display = 'flex';
+      mark.classList.remove('dict-ok', 'dict-bad');
+      mark.classList.add('dict-pending');
+      mark.innerHTML = '&#8230;'; // ellipsis while loading
+      const checking = String(word).toUpperCase();
+      loadLasermanDictionary().then(dict => {
+        // Bail if the game has moved on to a new word
+        if (gameState.word !== checking) return;
+        if (!dict) {
+          // Fetch failed — hide the indicator rather than show a misleading value
+          row.style.display = 'none';
+          return;
+        }
+        mark.classList.remove('dict-pending');
+        if (dict.has(checking)) {
+          mark.classList.add('dict-ok');
+          mark.innerHTML = '&#10003;'; // check
+        } else {
+          mark.classList.add('dict-bad');
+          mark.innerHTML = '&#10007;'; // x
+        }
+      });
     }
 
     function applyPerfTier(tier) {
@@ -4041,6 +4114,9 @@
         llRow.style.display = 'none';
       }
 
+      // Dictionary indicator — shows on all modes whether the current word is in the master dictionary
+      updateDictIndicator(word);
+
       // LASERLINK mode: show CREATE LINK button (amber) instead of NEW GAME
       const newGameBtn = document.getElementById('new-game-btn');
       if (gameState.mode === 'laserlink') {
@@ -5142,14 +5218,27 @@
       btn.disabled = false;
 
       const message = nameRaw + ' has sent you a Laserlink! ' + finalUrl;
-      document.getElementById('laserlink-message').value = message;
+      const ta = document.getElementById('laserlink-message');
+      ta.value = message;
       document.getElementById('laserlink-copy-status').textContent = '';
       document.getElementById('laserlink-compose').style.display = 'none';
       document.getElementById('laserlink-share').style.display = '';
       // Show native SHARE button if supported
       const shareBtn = document.getElementById('btn-laserlink-share-native');
       shareBtn.style.display = (navigator.share) ? '' : 'none';
+      // Auto-size textarea height to content (must run after share view is visible)
+      requestAnimationFrame(autosizeLaserlinkMessage);
     });
+
+    // Sizes the share-link textarea to exactly fit its content — no blank lines.
+    function autosizeLaserlinkMessage() {
+      const ta = document.getElementById('laserlink-message');
+      if (!ta || ta.offsetParent === null) return;  // not visible
+      ta.style.height = 'auto';
+      ta.style.height = (ta.scrollHeight + 2) + 'px';
+    }
+    // Recompute on viewport changes (rotations, window resizes) so line wrapping stays tight
+    window.addEventListener('resize', autosizeLaserlinkMessage);
 
     onTap(document.getElementById('btn-laserlink-copy'), async () => {
       const msg = document.getElementById('laserlink-message').value;
