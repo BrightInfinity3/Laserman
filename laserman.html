@@ -1694,17 +1694,17 @@
       grayFailMode  = (color === 'purple');
 
       if (grayLaserMode) {
-        // Red theme: turrets + laser etching + hit body render gray so they
-        // don't blend into the red body palette.
-        COL.red       = '#555555';
-        COL.bodyRed   = '#aaaaaa';
+        // Red theme: laser etching + hit body render gray. Turrets KEEP the palette (red) color
+        // on their "alive" state — they only transition to gray during the firing animation
+        // (via the fireUp target color and the fired COL.red below).
+        COL.red       = '#555555';      // fired-turret color → gray
+        COL.bodyRed   = '#aaaaaa';      // hit body parts → gray
         COL.redGlow   = 'rgba(170,170,170,0.55)';
         COL.laserCore = '#cccccc';
         COL.laserGlow = 'rgba(200,200,200,0.6)';
         COL.pink      = '#888888';
-        COL.traceBright = '#bbbbbb';  // replaces hardcoded '#ff6677'
-        COL.traceCore   = '#dddddd';  // replaces hardcoded '#ff8899'
-        COL.turretGreen = '#999999';  // alive-turret color override
+        COL.traceBright = '#bbbbbb';    // replaces hardcoded '#ff6677'
+        COL.traceCore   = '#dddddd';    // replaces hardcoded '#ff8899'
       } else {
         COL.red       = '#ff0044';
         COL.bodyRed   = '#ff4466';
@@ -1714,8 +1714,10 @@
         COL.pink      = '#ff0066';
         COL.traceBright = '#ff6677';
         COL.traceCore   = '#ff8899';
-        COL.turretGreen = p.primary;  // turrets match the palette
       }
+      // Turret "alive" color always matches the palette primary — the firing animation
+      // interpolates toward the fired color (red normally, gray for red theme).
+      COL.turretGreen = p.primary;
     }
 
     // ===========================
@@ -2405,13 +2407,36 @@
         { type: 'line', x1: CENTER_X + armDx, y1: armShoulderY + armUp - 5, x2: CENTER_X, y2: armShoulderY }, // 3: right arm
         { type: 'line', x1: CENTER_X - legDx, y1: footY, x2: CENTER_X, y2: tBot },                        // 4: left leg
         { type: 'line', x1: CENTER_X + legDx, y1: footY, x2: CENTER_X, y2: tBot },                        // 5: right leg
-        // 6: hair tuft — upper half-ellipse resting on the head crown, etched tip-to-base.
-        { type: 'hairTuft',
-          cx: hCx, cy: hCy - hR + 1,  // base center (just above head top)
-          hw: 13,                     // half-width
-          hh: 12,                     // height above head
-          x1: hCx, y1: hCy - hR - 12, // laser target: tip of tuft (top)
-          x2: hCx, y2: hCy - hR + 1 }, // trace end: base
+        // 6: spiky super-saiyan hair — zig-zag polygon atop the head, etched top-to-base.
+        (function() {
+          const cx = hCx, cy = hCy - hR + 2;  // base-line sits 2px inside head top
+          // Polygon path (left to right): valleys at dy >= 0, tips at dy < 0.
+          const points = [
+            { dx: -20, dy: 2 },    // leftmost base (slightly inside head)
+            { dx: -16, dy: -13 },  // spike 1
+            { dx: -12, dy: -1 },   // valley
+            { dx: -7,  dy: -22 },  // spike 2
+            { dx: -3,  dy: -3 },   // valley
+            { dx: 1,   dy: -28 },  // spike 3 — tallest
+            { dx: 5,   dy: -4 },   // valley
+            { dx: 10,  dy: -20 },  // spike 4
+            { dx: 14,  dy: -1 },   // valley
+            { dx: 18,  dy: -15 },  // spike 5
+            { dx: 22,  dy: 2 },    // rightmost base
+          ];
+          let minDy = Infinity, maxDy = -Infinity, tipDx = 0, tipDy = 0;
+          for (const p of points) {
+            if (p.dy < minDy) { minDy = p.dy; tipDx = p.dx; tipDy = p.dy; }
+            if (p.dy > maxDy) maxDy = p.dy;
+          }
+          return { type: 'spikeHair',
+            cx: cx, cy: cy,
+            points,
+            topOffset: minDy,          // -28
+            heightTotal: maxDy - minDy, // 30
+            x1: cx + tipDx, y1: cy + tipDy,   // laser target: tallest tip
+            x2: cx, y2: cy };                 // trace end (base)
+        })(),
       ];
     }
 
@@ -2929,12 +2954,12 @@
               ctx.stroke();
             }
           } else if (selectedCharacter === 'laserbug') {
-            // Ladybug head: two small beady dots, scaled for the smaller head
+            // Ladybug head (r=20): two small beady dots in the UPPER half of the face.
             ctx.beginPath();
-            ctx.arc(part.cx - 5, part.cy - 2, 2, 0, Math.PI * 2);
+            ctx.arc(part.cx - 6, part.cy - 10, 2, 0, Math.PI * 2);
             ctx.fill();
             ctx.beginPath();
-            ctx.arc(part.cx + 5, part.cy - 2, 2, 0, Math.PI * 2);
+            ctx.arc(part.cx + 6, part.cy - 10, 2, 0, Math.PI * 2);
             ctx.fill();
           } else if (selectedCharacter === 'laserkid') {
             // Kid: eyes scaled 2/3
@@ -3067,19 +3092,23 @@
         ctx.beginPath();
         ctx.arc(part.cx, part.cy, part.r, startAngle, startAngle + Math.PI * 2 * progress);
         ctx.stroke();
-      } else if (part.type === 'hairTuft') {
-        // Upper half-ellipse on top of head. Etches from tip (top) downward to base.
-        // We draw a filled dome inside a clip rectangle that grows from the top down.
+      } else if (part.type === 'spikeHair') {
+        // Super-saiyan spikes on top of head. Etches tip-down via a clip rect.
         const p = Math.min(1, progress);
-        const topY = part.cy - part.hh;
+        const topY = part.cy + part.topOffset;
         ctx.save();
         ctx.beginPath();
-        ctx.rect(part.cx - part.hw - 4, topY, (part.hw + 4) * 2, part.hh * p);
+        ctx.rect(part.cx - 28, topY, 56, part.heightTotal * p);
         ctx.clip();
         ctx.fillStyle = style.color || COL.bodyGreen;
         if (style.shadowBlur) { ctx.shadowBlur = style.shadowBlur; ctx.shadowColor = style.shadowColor || ctx.fillStyle; }
         ctx.beginPath();
-        ctx.ellipse(part.cx, part.cy, part.hw, part.hh, 0, Math.PI, 0, false);
+        for (let i = 0; i < part.points.length; i++) {
+          const px = part.cx + part.points[i].dx;
+          const py = part.cy + part.points[i].dy;
+          if (i === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
         ctx.fill();
         ctx.restore();
       }
@@ -3263,22 +3292,27 @@
       ctx.restore();
     }
 
-    // Laserbug spots. Outlined circles by default; fill in green/red during win/lose via laserbugSpotState.
+    // Laserbug spots.
+    //   - Spots START filled in the chosen palette color (palette primary).
+    //   - Before the body is etched, the border is a subtle dark outline (like a real ladybug).
+    //   - AFTER the body is hit, the border switches to red (or gray for red theme) as a damage cue.
+    //   - During the win/lose animation, laserbugSpotState overlays a growing color fill from center.
     function drawLaserbugSpots() {
       const spots = getLaserbugSpots();
       const bodyIsRed = bodyPartStates[1] === 'red';
       spots.forEach((spot, idx) => {
         const state = laserbugSpotState[idx] || { progress: 0, color: 'green' };
         ctx.save();
-        // Outline
-        ctx.strokeStyle = bodyIsRed ? 'rgba(160,60,70,0.85)' : 'rgba(20,30,50,0.9)';
-        ctx.lineWidth = 2;
-        ctx.shadowBlur = 4;
-        ctx.shadowColor = bodyIsRed ? 'rgba(160,60,70,0.3)' : 'rgba(0,0,0,0.6)';
+
+        // 1. Base fill — palette (chosen) color. Always visible.
+        ctx.fillStyle = COL.bodyGreen;
+        ctx.shadowBlur = 8;
+        ctx.shadowColor = COL.greenGlow;
         ctx.beginPath();
         ctx.arc(spot.cx, spot.cy, spot.r, 0, Math.PI * 2);
-        ctx.stroke();
-        // Fill (grows from center)
+        ctx.fill();
+
+        // 2. Win/lose overlay — fills from center in the animation color.
         if (state.progress > 0) {
           const fillCol = state.color === 'green' ? COL.bodyGreen : COL.bodyRed;
           const glowCol = state.color === 'green' ? COL.greenGlow : COL.redGlow;
@@ -3289,6 +3323,22 @@
           ctx.arc(spot.cx, spot.cy, spot.r * state.progress, 0, Math.PI * 2);
           ctx.fill();
         }
+
+        // 3. Border — subtle dark outline initially; switches to red (or gray in red theme) once the body has been etched.
+        if (bodyIsRed) {
+          ctx.strokeStyle = COL.bodyRed;
+          ctx.shadowBlur = 6;
+          ctx.shadowColor = COL.redGlow;
+          ctx.lineWidth = 2.5;
+        } else {
+          ctx.strokeStyle = 'rgba(0, 0, 0, 0.55)';
+          ctx.shadowBlur = 3;
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+          ctx.lineWidth = 2;
+        }
+        ctx.beginPath();
+        ctx.arc(spot.cx, spot.cy, spot.r, 0, Math.PI * 2);
+        ctx.stroke();
         ctx.restore();
       });
     }
@@ -3440,8 +3490,8 @@
         // Start at the tip / outer endpoint (x1)
         targetX = part.x1;
         targetY = part.y1;
-      } else if (part.type === 'hairTuft') {
-        // Top turret fires straight down onto the tip of the tuft; etching grows tip-to-base.
+      } else if (part.type === 'spikeHair') {
+        // Top turret fires down onto the tallest spike; etching grows top-to-base.
         targetX = part.x1;
         targetY = part.y1;
       } else {
@@ -3578,11 +3628,11 @@
               px = part.tipX + (part.baseInX - part.tipX) * tp;
               py = part.tipY + (part.baseInY - part.tipY) * tp;
             }
-          } else if (part.type === 'hairTuft') {
-            // Particles emerge from the moving etch front (top → down)
+          } else if (part.type === 'spikeHair') {
+            // Particles emerge from the advancing etch front (top → down)
             const p = laserAnim.traceProgress;
-            px = part.cx + (Math.random() - 0.5) * part.hw;
-            py = (part.cy - part.hh) + part.hh * p;
+            px = part.cx + (Math.random() - 0.5) * 44;
+            py = (part.cy + part.topOffset) + part.heightTotal * p;
           } else {
             px = part.x1 + (part.x2 - part.x1) * laserAnim.traceProgress;
             py = part.y1 + (part.y2 - part.y1) * laserAnim.traceProgress;
@@ -3916,9 +3966,9 @@
           const tp = laserAnim.traceProgress;
           tipX = p.tipX + (p.baseOutX - p.tipX) * tp;
           tipY = p.tipY + (p.baseOutY - p.tipY) * tp;
-        } else if (p.type === 'hairTuft') {
+        } else if (p.type === 'spikeHair') {
           tipX = p.cx;
-          tipY = (p.cy - p.hh) + p.hh * laserAnim.traceProgress;
+          tipY = (p.cy + p.topOffset) + p.heightTotal * laserAnim.traceProgress;
         } else {
           tipX = p.x1 + (p.x2 - p.x1) * laserAnim.traceProgress;
           tipY = p.y1 + (p.y2 - p.y1) * laserAnim.traceProgress;
@@ -3953,8 +4003,12 @@
       // Start smile animation on the character's head (scaled per character)
       let smileCy, smileR;
       if (selectedCharacter === 'laserkid') {
+        // Proportional to Laserman (smile cy = hCy - 2, r = 14; 19/28 scale → -1, 9).
         const s = 2 / 3;
-        smileCy = CENTER_Y - Math.round(65 * s) - 1;
+        const hR = Math.round(28 * s);
+        const tTop = CENTER_Y - Math.round(28 * s);
+        const kHCy = tTop - hR;
+        smileCy = kHCy - 1;
         smileR = 9;
       } else if (selectedCharacter === 'laserbug') {
         // New head cy = CENTER_Y - 65 (headR=20, tangent). Smile slightly above head center.
@@ -3981,12 +4035,15 @@
       }
       if (selectedCharacter === 'laserkid') {
         const s = 2 / 3;
-        const kHCy = CENTER_Y - Math.round(65 * s);
+        const hR = Math.round(28 * s);
+        const tTop = CENTER_Y - Math.round(28 * s);
+        const kHCy = tTop - hR;   // matches getLaserkidParts: head tangent to torso top
         return { left: { x: hCx - 6, y: kHCy - 5, r: 2 }, right: { x: hCx + 6, y: kHCy - 5, r: 2 } };
       }
       if (selectedCharacter === 'laserbug') {
         const bHCy = CENTER_Y + 10 - 55 - 20; // match laserbug head cy (headR=20, tangent)
-        return { left: { x: hCx - 6, y: bHCy - 3, r: 2 }, right: { x: hCx + 6, y: bHCy - 3, r: 2 } };
+        // Eyes sit in the upper portion of the head (r=20), well above center.
+        return { left: { x: hCx - 6, y: bHCy - 10, r: 2 }, right: { x: hCx + 6, y: bHCy - 10, r: 2 } };
       }
       return { left: { x: hCx - 9, y: hCy - 7, r: 2.5 }, right: { x: hCx + 9, y: hCy - 7, r: 2.5 } };
     }
@@ -3996,15 +4053,17 @@
       const features = [];
       if (selectedCharacter === 'laserkid') {
         const s = 2 / 3;
-        const kHCy = CENTER_Y - Math.round(65 * s);
+        const hR = Math.round(28 * s);
+        const tTop = CENTER_Y - Math.round(28 * s);
+        const kHCy = tTop - hR;
         features.push({ type: 'eye', x: hCx - 6, y: kHCy - 5, r: 2 });
         features.push({ type: 'eye', x: hCx + 6, y: kHCy - 5, r: 2 });
         return features;
       }
       if (selectedCharacter === 'laserbug') {
         const bHCy = CENTER_Y + 10 - 55 - 20;
-        features.push({ type: 'eye', x: hCx - 6, y: bHCy - 3, r: 2 });
-        features.push({ type: 'eye', x: hCx + 6, y: bHCy - 3, r: 2 });
+        features.push({ type: 'eye', x: hCx - 6, y: bHCy - 10, r: 2 });
+        features.push({ type: 'eye', x: hCx + 6, y: bHCy - 10, r: 2 });
         return features;
       }
       if (selectedCharacter === 'lasercat') {
@@ -4043,8 +4102,12 @@
       // Per-character frown geometry
       let frownCy, frownR;
       if (selectedCharacter === 'laserkid') {
+        // Proportional to Laserman (frown cy = hCy + 18, r = 14; scale to hR/28 → +12, 9).
         const s = 2 / 3;
-        frownCy = CENTER_Y - Math.round(65 * s) + 12;
+        const hR = Math.round(28 * s);
+        const tTop = CENTER_Y - Math.round(28 * s);
+        const kHCy = tTop - hR;
+        frownCy = kHCy + 12;
         frownR = 9;
       } else if (selectedCharacter === 'laserbug') {
         // Move frown up a bit — sits centered on the upper face so the sad arc curves above it
