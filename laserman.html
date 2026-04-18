@@ -1162,6 +1162,43 @@
       .perf-btn { padding: 12px 22px; min-width: 90px; }
     }
 
+    /* Options screen — compact layout for phones so all 5 characters, 6 colors, perf controls
+       and MAIN MENU button fit on one viewport without scrolling.
+       This block overrides the broad pointer:coarse sizes above for narrow screens. */
+    @media (max-width: 600px) {
+      #options-screen {
+        gap: 8px;
+        padding-top: 8px;
+        min-height: auto;          /* don't force 80vh — let content determine height */
+        max-height: 100dvh;
+        overflow-y: auto;           /* safety scroll if content still overflows */
+        -webkit-overflow-scrolling: touch;
+      }
+      #options-screen .game-title.mode-label { font-size: 1.5rem; margin-bottom: 6px; letter-spacing: 3px; }
+      #options-screen .color-section { margin-top: 0; }
+      #options-screen .color-label { font-size: 0.7rem; letter-spacing: 4px; margin-bottom: 4px; }
+      #options-screen .character-select { gap: 4px; }
+      #options-screen .char-option { width: 230px; font-size: 0.7rem; padding: 5px 16px; letter-spacing: 3px; border-width: 1.5px; }
+      #options-screen .char-lives { font-size: 0.55rem; letter-spacing: 1px; margin-top: 0; }
+      #options-screen .color-btn { width: 32px; height: 32px; border-width: 2px; }  /* overrides pointer:coarse */
+      #options-screen .color-options { gap: 14px; }
+      #options-screen .color-options.row2 { margin-top: 6px; }
+      #options-screen .perf-btn { padding: 6px 16px; min-width: 70px; font-size: 0.75rem; }  /* overrides pointer:coarse */
+      #options-screen .perf-options { gap: 10px; }
+      #options-screen .perf-auto-label { font-size: 0.6rem; letter-spacing: 2px; }
+      #options-screen #btn-options-back { margin-top: 4px !important; padding: 10px 28px; font-size: 0.85rem; }
+    }
+
+    /* Even tighter on very short viewports (e.g. small phones in landscape) */
+    @media (max-width: 600px) and (max-height: 640px) {
+      #options-screen { gap: 5px; }
+      #options-screen .game-title.mode-label { font-size: 1.3rem; margin-bottom: 3px; }
+      #options-screen .char-option { padding: 3px 14px; font-size: 0.65rem; }
+      #options-screen .char-lives { font-size: 0.5rem; }
+      #options-screen .color-btn { width: 28px; height: 28px; }
+      #options-screen .perf-btn { padding: 4px 12px; font-size: 0.7rem; min-width: 60px; }
+    }
+
     /* Performance tier CSS toggles */
     body.perf-no-grid {
       background-image: none !important;
