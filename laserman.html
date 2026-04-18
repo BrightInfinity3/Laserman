@@ -2086,10 +2086,6 @@
     let lwFlowerAnim = null;  // null = fully green. Non-null = red fade-in.
     // Laserwoman head backfill (for modes B/C/D where head isn't the primary, fills around after).
     let lwHeadBackfill = null;  // {progress: 0..1}
-    // Laserkid hair: same shape idea but shorter.
-    let lkHairAnim = null;
-    // Laserkid head circle backfill (for modes B/D where hair hits first, head fills around afterward).
-    let lkHeadBackfill = null;  // {progress: 0..1}
     // Laserbug spots fill (win/lose animation). [{progress: 0..1, color: 'green'|'red'}]
     let laserbugSpotState = [];
     // Laserbug spot-fill animation (during win/lose): {startTime, durationPerSpot, spots: [...]}
@@ -2129,18 +2125,33 @@
       }
 
       if (selectedCharacter === 'laserwoman') {
-        // 6 lives, 6 turrets (same ring as Laserman: rotation 30°)
-        // Final-combo mode picks A/B/C/D — determines primary target AND which top turret fires
-        // A = head first, B = flower first, C = hair-left first, D = hair-right first
+        // 6 lives, 6 turrets (rotation 30°).
+        // Final-combo mode A/B/C/D determines primary AND which top turret fires the head shot.
+        //   A = head first, B = flower first, C = hair-left first, D = hair-right first.
+        // NEW turret assignments:
+        //   - Head: a top turret (0 or 5). Fixed to 5 for mode C, 0 for mode D; random otherwise.
+        //   - Arm on head turret's side: the OTHER top turret hits that arm.
+        //     (If head=0 (upper-right), arm turret = 5 (upper-left) hits L-arm.
+        //      If head=5 (upper-left), arm turret = 0 (upper-right) hits R-arm.)
+        //   - Torso: a random side turret (1 = right, or 4 = left). Etching still starts at the neck.
+        //   - Remaining 3 turrets fill the remaining 3 limbs at random.
         const modes = ['A', 'B', 'C', 'D'];
         finalComboMode = modes[Math.floor(Math.random() * modes.length)];
         let headTurret;
-        if (finalComboMode === 'C')      headTurret = 5; // top-left
-        else if (finalComboMode === 'D') headTurret = 0; // top-right
+        if (finalComboMode === 'C')      headTurret = 5;
+        else if (finalComboMode === 'D') headTurret = 0;
         else                             headTurret = Math.random() < 0.5 ? 0 : 5;
-        const torsoTurret = headTurret === 0 ? 5 : 0;
-        // Reuse Laserman's geometric mapping for the limbs
-        partToTurret = [headTurret, torsoTurret, 4, 1, 3, 2];
+        const armTurret = headTurret === 0 ? 5 : 0;
+        const armPartIdx = headTurret === 0 ? 2 : 3; // headTurret=0 -> top-right, armTurret=5 on LEFT -> L-arm(2); else R-arm(3)
+        const torsoTurret = Math.random() < 0.5 ? 1 : 4;
+        // Build the assignment map.
+        const assigned = { 0: headTurret, 1: torsoTurret };
+        assigned[armPartIdx] = armTurret;
+        const remainingParts = [2, 3, 4, 5].filter(p => !(p in assigned));
+        const remainingTurrets = [0, 1, 2, 3, 4, 5].filter(t => t !== headTurret && t !== torsoTurret && t !== armTurret);
+        shuffleArray(remainingTurrets);
+        remainingParts.forEach((p, i) => { assigned[p] = remainingTurrets[i]; });
+        partToTurret = [assigned[0], assigned[1], assigned[2], assigned[3], assigned[4], assigned[5]];
         const body = [2, 3, 4, 5];
         shuffleArray(body);
         const order = body.map(p => ({ part: p, turret: partToTurret[p] }));
@@ -2150,18 +2161,22 @@
       }
 
       if (selectedCharacter === 'laserkid') {
-        // 7 lives, 7 turrets (rotation 0° so turret 0 sits at the top).
-        // Turret 0 = top (always hits cap). Final combo: turret 1 (upper-right) or 6 (upper-left) fires the head shot.
-        //   A = top-left head-first, B = top-left hair-first, C = top-right head-first, D = top-right hair-first
-        // Per spec: cap is part of the randomized first-6 set; head is last.
-        const modes = ['A', 'B', 'C', 'D'];
-        finalComboMode = modes[Math.floor(Math.random() * modes.length)];
-        const topLeft = finalComboMode === 'A' || finalComboMode === 'B';
-        const headTurret = topLeft ? 6 : 1;
-        const torsoTurret = topLeft ? 1 : 6;
-        // Parts: 0=head (final), 1=torso, 2=L-arm, 3=R-arm, 4=L-leg, 5=R-leg, 6=cap
-        partToTurret = [headTurret, torsoTurret, 5, 2, 4, 3, /* cap */ 0];
-        // All 6 non-head parts shuffled together (torso + limbs + cap)
+        // 7 lives, 7 turrets (rotation 360/14 ≈ 25.71° — places turret 3 at the bottom for the hoverboard).
+        // Turret layout (25.71° rotation): 0=upper-right, 1=right-upper, 2=lower-right, 3=bottom, 4=lower-left, 5=left-upper, 6=upper-left.
+        // Head: random top turret (0 or 6). Torso: the other top turret.
+        // Hoverboard: bottom turret (3). Limbs: the remaining four side turrets.
+        const headTurret = Math.random() < 0.5 ? 0 : 6;
+        const torsoTurret = headTurret === 0 ? 6 : 0;
+        partToTurret = [
+          headTurret,   // 0: head
+          torsoTurret,  // 1: torso
+          5,            // 2: L-arm  (left side)
+          1,            // 3: R-arm  (right side)
+          4,            // 4: L-leg  (lower-left)
+          2,            // 5: R-leg  (lower-right)
+          3,            // 6: hoverboard (bottom)
+        ];
+        // All 6 non-head parts randomized (torso, limbs, hoverboard)
         const body = [1, 2, 3, 4, 5, 6];
         shuffleArray(body);
         const order = body.map(p => ({ part: p, turret: partToTurret[p] }));
@@ -2274,8 +2289,7 @@
     }
 
     // === Laserkid (7 lives) ===
-    // 2/3 Laserman dimensions. Hair 2/3 of Laserwoman's (4/9 of Laserman proportion).
-    // Cap is a body part (part 6); hair is an accessory drawn alongside the head.
+    // 2/3 Laserman dimensions. No hair/cap — character has a hover board below the feet instead.
     function getLaserkidParts() {
       // Laserman ref: head r=28 at (cx, cy-65); torso -37..+45 (length 82); arms 50 horizontal, 45 vertical;
       // legs 45 horizontal, 60 vertical. We scale by 2/3 ≈ 0.667.
@@ -2283,81 +2297,99 @@
       const hR = Math.round(28 * s);        // 19
       const hCx = CENTER_X;
       const hCy = CENTER_Y - Math.round(65 * s); // -43 from center
-      // Torso
       const tTop = hCy + hR - 4; // just below head
       const tBot = tTop + Math.round(82 * s); // 55 long
-      // Arm endpoints (hands out, shoulders at chest)
       const armDx = Math.round(50 * s); // 33
       const armUp = Math.round(45 * s); // 30
       const armShoulderY = tTop;        // connect at top of torso
-      // Leg endpoints
       const legDx = Math.round(45 * s); // 30
       const legDy = Math.round(60 * s); // 40
+      const footY = tBot + legDy;       // foot y
       return [
         { type: 'circle', cx: hCx, cy: hCy, r: hR },                                                     // 0: head
         { type: 'line', x1: CENTER_X, y1: tTop, x2: CENTER_X, y2: tBot },                                // 1: torso
         { type: 'line', x1: CENTER_X - armDx, y1: armShoulderY + armUp - 5, x2: CENTER_X, y2: armShoulderY }, // 2: left arm
         { type: 'line', x1: CENTER_X + armDx, y1: armShoulderY + armUp - 5, x2: CENTER_X, y2: armShoulderY }, // 3: right arm
-        { type: 'line', x1: CENTER_X - legDx, y1: tBot + legDy, x2: CENTER_X, y2: tBot },                // 4: left leg
-        { type: 'line', x1: CENTER_X + legDx, y1: tBot + legDy, x2: CENTER_X, y2: tBot },                // 5: right leg
-        // 6: sideways baseball cap — brim points RIGHT (stretches past head to the right)
-        { type: 'cap',
-          cx: hCx, cy: hCy, hR: hR,
-          crownR: hR - 2,                 // crown sits above the head
-          crownCY: hCy - hR + 2,          // crown center a bit above head top
-          brimRightX: hCx + hR + 14,     // brim tip points right
-          brimRightY: hCy - hR + 6,      // slightly down from crown top
-          brimBaseX: hCx + 2,            // brim attaches near head
-          brimBaseY: hCy - hR + 2,
-          x1: hCx, y1: hCy - hR - 4,     // laser target: top of crown
-          x2: hCx, y2: hCy - hR + 2 },   // trace end (base of crown)
+        { type: 'line', x1: CENTER_X - legDx, y1: footY, x2: CENTER_X, y2: tBot },                        // 4: left leg
+        { type: 'line', x1: CENTER_X + legDx, y1: footY, x2: CENTER_X, y2: tBot },                        // 5: right leg
+        // 6: hover board — horizontal ellipse just below the feet, touching them.
+        { type: 'hoverboard',
+          cx: hCx, cy: footY + 6,    // centered 6px below feet (top of board touches feet)
+          hw: 55,                     // half-width — wider than foot span
+          hh: 5 },                    // half-height
       ];
-    }
-
-    function getLaserkidHairGeom() {
-      // Hair scaled 2/3 proportional to Laserkid's 2/3 body — so it flows past the head like Laserwoman's.
-      // (4/9 absolute would hide behind the smaller head; 2/3 both above and below the head-center reads correctly.)
-      const s = 2 / 3;
-      const hCx = CENTER_X;
-      const hCy = CENTER_Y - Math.round(65 * s);
-      return {
-        cx: hCx,
-        topY: hCy - Math.round(27 * s),  // just above crown — tucked under clip
-        botY: hCy + Math.round(55 * s),  // flares past shoulders
-        topHW: Math.round(15 * s),       // narrow at top (10)
-        botHW: Math.round(42 * s),       // wider at bottom (28)
-      };
     }
 
     // === Laserbug (10 lives) — ladybug design ===
     // Parts: 0=head, 1=body, 2-4=left legs (top/mid/bot), 5-7=right legs, 8=left antenna, 9=right antenna.
-    // Spots are drawn on the body but not body parts; they animate during win/lose.
+    // Spots are drawn on the body but aren't body parts; they animate during win/lose.
+    // Head/legs/antennae attach TANGENT to their connecting circles (no overlap).
+    // Legs are bent about 2/3 of the way down (upper segment heads outward, lower segment angles down).
     function getLaserbugParts() {
       const bodyCx = CENTER_X, bodyCy = CENTER_Y + 10, bodyR = 55;
       const headR = 18;
-      const headCx = bodyCx, headCy = bodyCy - bodyR - headR + 4; // tucked onto the body
-      const legSlant = 12;
+      const headCx = bodyCx;
+      // Head sits tangent to body (head bottom touches body top)
+      const headCy = bodyCy - bodyR - headR;
+
+      // Compute leg attach points on body edge (tangent): for each leg's angle from body center,
+      // the attach point is (bodyCx ± bodyR*cos(angle), bodyCy + bodyR*sin(angle)).
+      // Leg goes outward from attach point through a "knee" (bend) then down to a "foot".
+      // Values below place legs symmetrically at angles roughly -45°, 0°, +45° (left and right).
+      function leg(sideSign, bodyAngleDeg) {
+        const a = bodyAngleDeg * Math.PI / 180;
+        const ax = bodyCx + sideSign * bodyR * Math.cos(a);   // attach x (body edge)
+        const ay = bodyCy + bodyR * Math.sin(a);              // attach y (body edge)
+        // Upper segment: goes outward from body (away from center) about 22px
+        const outDx = sideSign * Math.cos(a) * 22;
+        const outDy = Math.sin(a) * 22;
+        const kneeX = ax + outDx;
+        const kneeY = ay + outDy;
+        // Lower segment: bends down (and slightly inward) about 14px — gives bug-leg silhouette
+        const footX = kneeX + sideSign * 2;  // tiny inward splay
+        const footY = kneeY + 14;
+        return {
+          type: 'bentLine',
+          // x1/y1 = tip (foot) — laser target, etching starts here
+          x1: footX, y1: footY,
+          bendX: kneeX, bendY: kneeY,
+          x2: ax, y2: ay,  // final end: body edge
+        };
+      }
+
       return [
-        // 0: head (small circle on top of body)
+        // 0: head (small circle on top of body, tangent)
         { type: 'circle', cx: headCx, cy: headCy, r: headR },
         // 1: body (large circle)
         { type: 'bugBody', cx: bodyCx, cy: bodyCy, r: bodyR,
-          x1: bodyCx, y1: bodyCy - bodyR, x2: bodyCx, y2: bodyCy }, // target: top of body; trace endpoint: center
-        // 2-4: left legs (top, mid, bot) — lines from body-edge outward+down
-        { type: 'line', x1: bodyCx - bodyR - 22, y1: bodyCy - 18 + legSlant, x2: bodyCx - bodyR + 6, y2: bodyCy - 18 },
-        { type: 'line', x1: bodyCx - bodyR - 24, y1: bodyCy + 4 + legSlant, x2: bodyCx - bodyR + 4, y2: bodyCy + 4 },
-        { type: 'line', x1: bodyCx - bodyR - 22, y1: bodyCy + 26 + legSlant, x2: bodyCx - bodyR + 6, y2: bodyCy + 26 },
-        // 5-7: right legs (top, mid, bot) — mirror
-        { type: 'line', x1: bodyCx + bodyR + 22, y1: bodyCy - 18 + legSlant, x2: bodyCx + bodyR - 6, y2: bodyCy - 18 },
-        { type: 'line', x1: bodyCx + bodyR + 24, y1: bodyCy + 4 + legSlant, x2: bodyCx + bodyR - 4, y2: bodyCy + 4 },
-        { type: 'line', x1: bodyCx + bodyR + 22, y1: bodyCy + 26 + legSlant, x2: bodyCx + bodyR - 6, y2: bodyCy + 26 },
-        // 8-9: antennae — bezier curves from head outward up, ending in a tiny ball
-        { type: 'antenna', x1: headCx - 22, y1: headCy - 24,   // antenna tip (laser target)
-          cpx: headCx - 14, cpy: headCy - 20,
-          x2: headCx - 6, y2: headCy - headR + 4 },            // base on head
-        { type: 'antenna', x1: headCx + 22, y1: headCy - 24,
-          cpx: headCx + 14, cpy: headCy - 20,
-          x2: headCx + 6, y2: headCy - headR + 4 },
+          x1: bodyCx, y1: bodyCy - bodyR, x2: bodyCx, y2: bodyCy }, // defaults; real target is computed in setupBeam
+        // 2-4: left legs (top, mid, bot) — bentLine from foot to body edge
+        leg(-1, -40), leg(-1, 0), leg(-1, 40),
+        // 5-7: right legs (top, mid, bot) — mirrored
+        leg( 1, -40), leg( 1, 0), leg( 1, 40),
+        // 8-9: antennae — bezier curves from tip (x1) through control point, ending at head edge (tangent)
+        //   base of antenna is on the head's circumference (upper-left at -40° and upper-right at -140°, measuring
+        //   standard math angles from +x). We compute the tangent point analytically.
+        (function(sideSign) {
+          const a = (sideSign === -1 ? -110 : -70) * Math.PI / 180; // upper-side of head
+          const baseX = headCx + headR * Math.cos(a);
+          const baseY = headCy + headR * Math.sin(a);
+          const tipX = baseX + sideSign * 12;
+          const tipY = baseY - 24;
+          const cpx = baseX + sideSign * 4;
+          const cpy = baseY - 14;
+          return { type: 'antenna', x1: tipX, y1: tipY, cpx, cpy, x2: baseX, y2: baseY };
+        })(-1),
+        (function(sideSign) {
+          const a = (sideSign === -1 ? -110 : -70) * Math.PI / 180;
+          const baseX = headCx + headR * Math.cos(a);
+          const baseY = headCy + headR * Math.sin(a);
+          const tipX = baseX + sideSign * 12;
+          const tipY = baseY - 24;
+          const cpx = baseX + sideSign * 4;
+          const cpy = baseY - 14;
+          return { type: 'antenna', x1: tipX, y1: tipY, cpx, cpy, x2: baseX, y2: baseY };
+        })(1),
       ];
     }
 
@@ -2398,11 +2430,12 @@
       const count = getMaxWrong();
       // Rotate turrets per character so bottom turret doesn't aim at crotch:
       //   Laserman/Laserwoman (6):   30° CW → places 0=upper-right, 5=upper-left
-      //   Laserkid (7):              0°     → places 0 at top center (aims at cap)
+      //   Laserkid (7):              360/14 ≈ 25.71° → turret 3 sits at the bottom (aims at hoverboard)
       //   Lasercat (9):              0°
       //   Laserbug (10):             0°     → places 0 at top (head) and 5 at bottom (body)
       let rotationDeg = 0;
       if (count === 6) rotationDeg = 30;
+      else if (count === 7) rotationDeg = 360 / 14;  // 25.71°, puts one turret exactly at bottom (90°)
       else if (count === 8) rotationDeg = 22.5; // legacy — unused now but safe
       const rotationRad = rotationDeg * Math.PI / 180;
       const positions = [];
@@ -2764,8 +2797,9 @@
       ctx.globalAlpha = style.alpha || 1;
 
       if (part.type === 'circle') {
+        const startAngle = part.startAngle !== undefined ? part.startAngle : -Math.PI / 2;
         ctx.beginPath();
-        ctx.arc(part.cx, part.cy, part.r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        ctx.arc(part.cx, part.cy, part.r, startAngle, startAngle + Math.PI * 2 * progress);
         ctx.stroke();
         if (progress >= 1) {
           ctx.fillStyle = style.eyeColor || COL.green;
@@ -2832,6 +2866,26 @@
         ctx.moveTo(part.x1, part.y1);
         ctx.lineTo(endX, endY);
         ctx.stroke();
+      } else if (part.type === 'bentLine') {
+        // Two segments: x1/y1 (tip) -> bendX/bendY (knee) -> x2/y2 (body attach).
+        // Trace progresses along total length (tip-to-knee then knee-to-attach).
+        const s1x = part.bendX - part.x1, s1y = part.bendY - part.y1;
+        const s1 = Math.hypot(s1x, s1y);
+        const s2x = part.x2 - part.bendX, s2y = part.y2 - part.bendY;
+        const s2 = Math.hypot(s2x, s2y);
+        const total = s1 + s2;
+        const covered = Math.min(1, progress) * total;
+        ctx.beginPath();
+        ctx.moveTo(part.x1, part.y1);
+        if (covered <= s1) {
+          const t = covered / s1;
+          ctx.lineTo(part.x1 + s1x * t, part.y1 + s1y * t);
+        } else {
+          ctx.lineTo(part.bendX, part.bendY);
+          const t = (covered - s1) / s2;
+          ctx.lineTo(part.bendX + s2x * t, part.bendY + s2y * t);
+        }
+        ctx.stroke();
       } else if (part.type === 'ear') {
         // Two lines from tip, traced simultaneously downward (no bottom leg)
         const innerX = part.tipX + (part.baseInX - part.tipX) * progress;
@@ -2895,23 +2949,6 @@
           ctx.arc(part.cx, part.cy, part.r, 0, Math.PI * 2);
           ctx.fill();
         }
-      } else if (part.type === 'cap') {
-        // Sideways baseball cap: crown (half-arc above head) + brim sweeping right.
-        const p = Math.min(1, progress);
-        // Crown is half an arc (from left to right across the top of head)
-        ctx.beginPath();
-        ctx.arc(part.cx, part.crownCY, part.crownR, Math.PI, Math.PI + Math.PI * p, false);
-        ctx.stroke();
-        // Brim: line from head top to brim tip (right-pointing)
-        if (p > 0.5) {
-          const bp = (p - 0.5) / 0.5;
-          const endX = part.brimBaseX + (part.brimRightX - part.brimBaseX) * bp;
-          const endY = part.brimBaseY + (part.brimRightY - part.brimBaseY) * bp;
-          ctx.beginPath();
-          ctx.moveTo(part.brimBaseX, part.brimBaseY);
-          ctx.lineTo(endX, endY);
-          ctx.stroke();
-        }
       } else if (part.type === 'antenna') {
         // Bezier curve from base to tip, with a small ball at tip when drawn.
         const t = progress;
@@ -2930,10 +2967,21 @@
           ctx.fill();
         }
       } else if (part.type === 'bugBody') {
-        // Large body outline — arc drawn CW starting from top
+        // Large body outline — arc drawn CW starting from the turret-contact angle (defaults to top)
+        const startAngle = part.startAngle !== undefined ? part.startAngle : -Math.PI / 2;
         ctx.beginPath();
-        ctx.arc(part.cx, part.cy, part.r, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * progress);
+        ctx.arc(part.cx, part.cy, part.r, startAngle, startAngle + Math.PI * 2 * progress);
         ctx.stroke();
+      } else if (part.type === 'hoverboard') {
+        // Expands from center outward horizontally (height stays constant after a bit).
+        const p = Math.min(1, progress);
+        const hw = part.hw * p;
+        const hh = part.hh * Math.min(1, p * 3); // grow height quickly then stay
+        if (hw > 1 && hh > 1) {
+          ctx.beginPath();
+          ctx.ellipse(part.cx, part.cy, hw, hh, 0, 0, Math.PI * 2);
+          ctx.stroke();
+        }
       }
       ctx.restore();
     }
@@ -2970,8 +3018,6 @@
       // --- Accessories (drawn first so body parts render on top) ---
       // Laserwoman hair (behind head, clipped to exclude head circle)
       if (selectedCharacter === 'laserwoman') drawLaserwomanHair();
-      // Laserkid hair (behind head, clipped)
-      if (selectedCharacter === 'laserkid') drawLaserkidHair();
 
       // 1) SolidHair first (renders behind head, clipped to exclude head circle)
       parts.forEach((part, idx) => {
@@ -3001,8 +3047,8 @@
       parts.forEach((part, idx) => {
         if (part.type !== 'solidHair' && part.type !== 'flower' && part.type !== 'ear') drawPart(part, idx);
       });
-      // 4) Head-backfill overlay (Laserwoman/Laserkid cascade) — draws a red arc progressing over the green head
-      const backfill = lwHeadBackfill || lkHeadBackfill;
+      // 4) Head-backfill overlay (Laserwoman cascade) — draws a red arc progressing over the green head
+      const backfill = lwHeadBackfill;
       if (backfill && parts[0] && parts[0].type === 'circle') {
         drawBodyPartShape(parts[0], Math.min(1, backfill.progress), {
           color: '#ff6677', lineWidth: 5, shadowBlur: 25, shadowColor: COL.red, eyeColor: COL.red,
@@ -3032,11 +3078,6 @@
     function drawLaserwomanHair() {
       const g = getLaserwomanHairGeom();
       _drawTrapezoidHairWithFill(g, lwHairAnim, /*headCy*/ CENTER_Y - 65, /*headR*/ 30);
-    }
-    function drawLaserkidHair() {
-      const g = getLaserkidHairGeom();
-      const s = 2 / 3;
-      _drawTrapezoidHairWithFill(g, lkHairAnim, /*headCy*/ CENTER_Y - Math.round(65 * s), /*headR*/ Math.round(28 * s) + 2);
     }
     // Shared renderer for the hair trapezoid. Draws green base layer, then red overlay based on anim.
     function _drawTrapezoidHairWithFill(g, anim, headCy, clipR) {
@@ -3252,9 +3293,8 @@
 
       turretStates[laserAnim.turretIndex] = 'firing';
 
-      // === Final-combo override: for Laserwoman / Laserkid head shot, re-target the primary ===
-      //   Laserwoman: A=head, B=flower, C=hair-left, D=hair-right
-      //   Laserkid:   A=(top-left) head first, B=(top-left) hair-left first, C=(top-right) head first, D=(top-right) hair-right first
+      // === Final-combo override: Laserwoman head shot re-targets based on mode ===
+      //   A=head first, B=flower first, C=hair-left first, D=hair-right first
       laserAnim.comboMode = null;
       laserAnim.comboCharacter = null;
       if (laserAnim.partIndex === 0) {
@@ -3279,46 +3319,33 @@
                      x1: hairG.cx + hairG.botHW, y1: hairG.botY, x2: hairG.cx, y2: hairG.topY };
           }
           // Mode 'A' uses the default head-circle part, no override.
-        } else if (selectedCharacter === 'laserkid') {
-          laserAnim.comboCharacter = 'laserkid';
-          laserAnim.comboMode = finalComboMode;
-          const hairG = getLaserkidHairGeom();
-          if (finalComboMode === 'B') {
-            // Top-left turret hits bottom-left corner of hair first
-            part = { type: 'solidHair', cx: hairG.cx,
-                     topY: hairG.topY, botY: hairG.botY, topHW: hairG.topHW, botHW: hairG.botHW,
-                     reverse: false,
-                     x1: hairG.cx - hairG.botHW, y1: hairG.botY, x2: hairG.cx, y2: hairG.topY };
-          } else if (finalComboMode === 'D') {
-            // Top-right turret hits bottom-right corner of hair first
-            part = { type: 'solidHair', cx: hairG.cx,
-                     topY: hairG.topY, botY: hairG.botY, topHW: hairG.topHW, botHW: hairG.botHW,
-                     reverse: true,
-                     x1: hairG.cx + hairG.botHW, y1: hairG.botY, x2: hairG.cx, y2: hairG.topY };
-          }
-          // Modes 'A'/'C' use the default head-circle part.
         }
       }
 
       let targetX, targetY;
-      if (part.type === 'circle') {
-        // Head: top turret (12 o'clock) fires straight down → top of head
-        targetX = part.cx;
-        targetY = part.cy - part.r;
-      } else if (part.type === 'bugBody') {
-        // Ladybug body: aim at top of body circle
-        targetX = part.cx;
-        targetY = part.cy - part.r;
-      } else if (laserAnim.partIndex === 1 && (selectedCharacter !== 'laserbug')) {
-        // Torso: target the "heart" (arm attachment point)
-        targetX = CENTER_X;
-        targetY = CENTER_Y - 20;
-      } else if (part.type === 'bezier') {
-        // Bezier parts (e.g. cat tail): target the start point
+      if (part.type === 'circle' || part.type === 'bugBody') {
+        // Closest point on circle circumference to the firing turret.
+        const dx = turret.x - part.cx;
+        const dy = turret.y - part.cy;
+        const d = Math.hypot(dx, dy) || 1;
+        targetX = part.cx + (dx / d) * part.r;
+        targetY = part.cy + (dy / d) * part.r;
+        // Record hit angle so the arc-trace starts from the contact point and sweeps clockwise.
+        part.startAngle = Math.atan2(dy, dx);
+      } else if (laserAnim.partIndex === 1 && selectedCharacter !== 'laserbug') {
+        // Torso: etching still starts at the neck and goes down regardless of turret.
         targetX = part.x1;
         targetY = part.y1;
+      } else if (part.type === 'bezier' || part.type === 'antenna' || part.type === 'bentLine') {
+        // Start at the tip / outer endpoint (x1)
+        targetX = part.x1;
+        targetY = part.y1;
+      } else if (part.type === 'hoverboard') {
+        // Bottom turret fires straight up at the hoverboard's bottom-center; etching grows outward from center.
+        targetX = part.cx;
+        targetY = part.cy + part.hh;
       } else {
-        // Limbs/hair/ears/antennae/cap/flower: target start-of-shape endpoint
+        // Lines / hair / ears / flower etc.: target start endpoint (tip)
         targetX = part.x1;
         targetY = part.y1;
       }
@@ -3410,14 +3437,30 @@
         const part = laserAnim.part;
         if (Math.random() < 0.4) {
           let px, py;
-          if (part.type === 'circle') {
-            const angle = -Math.PI / 2 + Math.PI * 2 * laserAnim.traceProgress;
+          if (part.type === 'circle' || part.type === 'bugBody') {
+            const startAngle = part.startAngle !== undefined ? part.startAngle : -Math.PI / 2;
+            const angle = startAngle + Math.PI * 2 * laserAnim.traceProgress;
             px = part.cx + Math.cos(angle) * part.r;
             py = part.cy + Math.sin(angle) * part.r;
-          } else if (part.type === 'bezier') {
+          } else if (part.type === 'bezier' || part.type === 'antenna') {
             const t = laserAnim.traceProgress;
             px = (1-t)*(1-t)*part.x1 + 2*(1-t)*t*part.cpx + t*t*part.x2;
             py = (1-t)*(1-t)*part.y1 + 2*(1-t)*t*part.cpy + t*t*part.y2;
+          } else if (part.type === 'bentLine') {
+            const s1x = part.bendX - part.x1, s1y = part.bendY - part.y1;
+            const s1 = Math.hypot(s1x, s1y);
+            const s2x = part.x2 - part.bendX, s2y = part.y2 - part.bendY;
+            const s2 = Math.hypot(s2x, s2y);
+            const covered = laserAnim.traceProgress * (s1 + s2);
+            if (covered <= s1) {
+              const t = covered / s1;
+              px = part.x1 + s1x * t;
+              py = part.y1 + s1y * t;
+            } else {
+              const t = (covered - s1) / s2;
+              px = part.bendX + s2x * t;
+              py = part.bendY + s2y * t;
+            }
           } else if (part.type === 'solidHair') {
             // Trace up from bottom (hit point) to top of hair
             const tp = laserAnim.traceProgress;
@@ -3435,6 +3478,12 @@
               px = part.tipX + (part.baseInX - part.tipX) * tp;
               py = part.tipY + (part.baseInY - part.tipY) * tp;
             }
+          } else if (part.type === 'hoverboard') {
+            // Grows from center outward — emit particles near the expanding edge
+            const p = laserAnim.traceProgress;
+            const side = Math.random() < 0.5 ? -1 : 1;
+            px = part.cx + side * part.hw * p;
+            py = part.cy + (Math.random() - 0.5) * part.hh * 2;
           } else {
             px = part.x1 + (part.x2 - part.x1) * laserAnim.traceProgress;
             py = part.y1 + (part.y2 - part.y1) * laserAnim.traceProgress;
@@ -3462,23 +3511,6 @@
             }
             secondaryAnim = {
               character: 'laserwoman', mode,
-              startTime: performance.now(),
-              duration: 450,
-              onComplete: laserAnim.onComplete,
-            };
-            laserAnim = null;
-            unlockKeyboard();
-            return;
-          }
-          if (laserAnim.comboCharacter === 'laserkid') {
-            const mode = laserAnim.comboMode;
-            if (mode === 'A' || mode === 'C') {
-              bodyPartStates[0] = 'red';  // head was primary
-            } else if (mode === 'B' || mode === 'D') {
-              lkHairAnim = { fillProgress: 1, fillDir: 'bot2top' };  // hair was primary
-            }
-            secondaryAnim = {
-              character: 'laserkid', mode,
               startTime: performance.now(),
               duration: 450,
               onComplete: laserAnim.onComplete,
@@ -3519,22 +3551,12 @@
           lwHeadBackfill = { progress };
           lwFlowerAnim = { fillProgress: progress };
         }
-      } else if (secondaryAnim.character === 'laserkid') {
-        const mode = secondaryAnim.mode;
-        if (mode === 'A' || mode === 'C') {
-          // Head already red. Hair fills top-to-bottom.
-          lkHairAnim = { fillProgress: progress, fillDir: 'top2bot' };
-        } else if (mode === 'B' || mode === 'D') {
-          // Hair already red. Head fills via backfill arc.
-          lkHeadBackfill = { progress };
-        }
       }
 
       if (progress >= 1) {
-        // Commit final head state and clear backfills
+        // Commit final head state and clear backfill
         bodyPartStates[0] = 'red';
         lwHeadBackfill = null;
-        lkHeadBackfill = null;
         const cb = secondaryAnim.onComplete;
         secondaryAnim = null;
         if (cb) cb();
@@ -3761,28 +3783,46 @@
 
         // Bright tracing point
         let tipX, tipY;
-        if (laserAnim.part.type === 'circle') {
-          const angle = -Math.PI / 2 + Math.PI * 2 * laserAnim.traceProgress;
-          tipX = laserAnim.part.cx + Math.cos(angle) * laserAnim.part.r;
-          tipY = laserAnim.part.cy + Math.sin(angle) * laserAnim.part.r;
-        } else if (laserAnim.part.type === 'bezier') {
+        const p = laserAnim.part;
+        if (p.type === 'circle' || p.type === 'bugBody') {
+          const startAngle = p.startAngle !== undefined ? p.startAngle : -Math.PI / 2;
+          const angle = startAngle + Math.PI * 2 * laserAnim.traceProgress;
+          tipX = p.cx + Math.cos(angle) * p.r;
+          tipY = p.cy + Math.sin(angle) * p.r;
+        } else if (p.type === 'bezier' || p.type === 'antenna') {
           const t = laserAnim.traceProgress;
-          tipX = (1-t)*(1-t)*laserAnim.part.x1 + 2*(1-t)*t*laserAnim.part.cpx + t*t*laserAnim.part.x2;
-          tipY = (1-t)*(1-t)*laserAnim.part.y1 + 2*(1-t)*t*laserAnim.part.cpy + t*t*laserAnim.part.y2;
-        } else if (laserAnim.part.type === 'solidHair') {
+          tipX = (1-t)*(1-t)*p.x1 + 2*(1-t)*t*p.cpx + t*t*p.x2;
+          tipY = (1-t)*(1-t)*p.y1 + 2*(1-t)*t*p.cpy + t*t*p.y2;
+        } else if (p.type === 'bentLine') {
+          const s1x = p.bendX - p.x1, s1y = p.bendY - p.y1;
+          const s1 = Math.hypot(s1x, s1y);
+          const s2x = p.x2 - p.bendX, s2y = p.y2 - p.bendY;
+          const s2 = Math.hypot(s2x, s2y);
+          const covered = laserAnim.traceProgress * (s1 + s2);
+          if (covered <= s1) {
+            const t = covered / s1;
+            tipX = p.x1 + s1x * t; tipY = p.y1 + s1y * t;
+          } else {
+            const t = (covered - s1) / s2;
+            tipX = p.bendX + s2x * t; tipY = p.bendY + s2y * t;
+          }
+        } else if (p.type === 'solidHair') {
           const tp = laserAnim.traceProgress;
-          const curHW = laserAnim.part.botHW - (laserAnim.part.botHW - laserAnim.part.topHW) * tp;
-          const side = laserAnim.part.reverse ? -1 : 1;
-          tipX = laserAnim.part.cx + side * curHW;
-          tipY = laserAnim.part.botY - (laserAnim.part.botY - laserAnim.part.topY) * tp;
-        } else if (laserAnim.part.type === 'ear') {
-          // Show bright dot on outer leg (more visible)
+          const curHW = p.botHW - (p.botHW - p.topHW) * tp;
+          const side = p.reverse ? -1 : 1;
+          tipX = p.cx + side * curHW;
+          tipY = p.botY - (p.botY - p.topY) * tp;
+        } else if (p.type === 'ear') {
           const tp = laserAnim.traceProgress;
-          tipX = laserAnim.part.tipX + (laserAnim.part.baseOutX - laserAnim.part.tipX) * tp;
-          tipY = laserAnim.part.tipY + (laserAnim.part.baseOutY - laserAnim.part.tipY) * tp;
+          tipX = p.tipX + (p.baseOutX - p.tipX) * tp;
+          tipY = p.tipY + (p.baseOutY - p.tipY) * tp;
+        } else if (p.type === 'hoverboard') {
+          const side = laserAnim.traceProgress < 0.5 ? -1 : 1;
+          tipX = p.cx + side * p.hw * laserAnim.traceProgress;
+          tipY = p.cy;
         } else {
-          tipX = laserAnim.part.x1 + (laserAnim.part.x2 - laserAnim.part.x1) * laserAnim.traceProgress;
-          tipY = laserAnim.part.y1 + (laserAnim.part.y2 - laserAnim.part.y1) * laserAnim.traceProgress;
+          tipX = p.x1 + (p.x2 - p.x1) * laserAnim.traceProgress;
+          tipY = p.y1 + (p.y2 - p.y1) * laserAnim.traceProgress;
         }
 
         ctx.save();
@@ -3931,72 +3971,79 @@
       if (selectedCharacter === 'laserbug') startLaserbugSpotFill('red');
     }
 
-    // Animate Laserbug spots filling from empty to full. On win: remaining green turrets aim at
-    // spots and they fill green. On loss: all spots fill red.
+    // Animate Laserbug spots filling sequentially — like Lasercat's face-feature sweep.
+    // The "active" turrets (greens on win, all reds on lose) aim at one spot at a time, filling it,
+    // then move to the next spot.
     function startLaserbugSpotFill(color) {
       const spots = getLaserbugSpots();
       laserbugSpotAnim = {
         startTime: performance.now(),
-        duration: 900,              // total time for all spots to fill
-        stagger: 120,               // ms between each spot's start
         color,
+        perSpot: 260,           // ms per spot
         spotCount: spots.length,
-        // Assign each spot a source turret (visual origin for the beam)
-        sources: spots.map((_, i) => {
-          const turrets = getTurretPositions();
-          // Prefer still-green turrets; on loss all are red, so pick any
-          const greens = turretStates.map((s, ti) => s === 'green' ? ti : -1).filter(ti => ti >= 0);
-          const pick = greens.length > 0 ? greens[i % greens.length] : i % turrets.length;
-          return { turretIdx: pick, t: turrets[pick] };
-        }),
+        currentSpot: 0,
+        currentProgress: 0,
       };
     }
 
     function updateLaserbugSpotAnim() {
       if (!laserbugSpotAnim) return;
-      const elapsed = performance.now() - laserbugSpotAnim.startTime;
-      const spots = getLaserbugSpots();
-      for (let i = 0; i < spots.length; i++) {
-        const localStart = i * laserbugSpotAnim.stagger;
-        const localTime = elapsed - localStart;
-        if (localTime <= 0) continue;
-        const spotDur = laserbugSpotAnim.duration - (spots.length - 1) * laserbugSpotAnim.stagger;
-        const progress = Math.max(0, Math.min(1, localTime / Math.max(50, spotDur)));
-        laserbugSpotState[i] = { progress, color: laserbugSpotAnim.color };
-      }
-      if (elapsed >= laserbugSpotAnim.duration + 200) {
+      const a = laserbugSpotAnim;
+      const elapsed = performance.now() - a.startTime;
+      const spotIdx = Math.floor(elapsed / a.perSpot);
+      const localElapsed = elapsed - spotIdx * a.perSpot;
+      const spotProgress = Math.min(1, localElapsed / a.perSpot);
+
+      if (spotIdx >= a.spotCount) {
+        // All spots done — commit fully-filled state
+        for (let i = 0; i < a.spotCount; i++) {
+          laserbugSpotState[i] = { progress: 1, color: a.color };
+        }
         laserbugSpotAnim = null;
+        return;
       }
+
+      // Spots before current are full; current is animating; later are empty
+      for (let i = 0; i < a.spotCount; i++) {
+        if (i < spotIdx) laserbugSpotState[i] = { progress: 1, color: a.color };
+        else if (i === spotIdx) laserbugSpotState[i] = { progress: spotProgress, color: a.color };
+        else laserbugSpotState[i] = { progress: 0, color: a.color };
+      }
+      a.currentSpot = spotIdx;
+      a.currentProgress = spotProgress;
     }
 
-    // Draw beams from source turrets to spot centers while the spot-fill animation runs.
-    // (Beams only appear on WIN — lose just fills the spots red without beams, since all turrets are red.)
+    // Draw beams from the "active" turrets to the currently-filling spot — moves target-to-target
+    // just like Lasercat's face animation. On win, green (unfired) turrets; on lose, all red turrets.
     function drawLaserbugSpotBeams() {
-      if (!laserbugSpotAnim || laserbugSpotAnim.color !== 'green') return;
+      if (!laserbugSpotAnim) return;
+      const a = laserbugSpotAnim;
+      const idx = a.currentSpot;
       const spots = getLaserbugSpots();
-      const elapsed = performance.now() - laserbugSpotAnim.startTime;
-      const col = laserbugSpotAnim.color === 'green' ? COL.bodyGreen : COL.bodyRed;
-      const glow = laserbugSpotAnim.color === 'green' ? COL.greenGlow : COL.redGlow;
-      for (let i = 0; i < spots.length; i++) {
-        const localStart = i * laserbugSpotAnim.stagger;
-        const localTime = elapsed - localStart;
-        if (localTime <= 0) continue;
-        const spotDur = laserbugSpotAnim.duration - (spots.length - 1) * laserbugSpotAnim.stagger;
-        const progress = Math.max(0, Math.min(1, localTime / Math.max(50, spotDur)));
-        if (progress >= 1) continue; // beam fades out when spot is full
-        const src = laserbugSpotAnim.sources[i];
+      if (idx >= spots.length) return;
+      const spot = spots[idx];
+      const col = a.color === 'green' ? COL.bodyGreen : COL.bodyRed;
+      const glow = a.color === 'green' ? COL.greenGlow : COL.redGlow;
+      const turrets = getTurretPositions();
+      const activeTurrets = [];
+      turretStates.forEach((s, i) => {
+        if (a.color === 'green' && s === 'green') activeTurrets.push(i);
+        else if (a.color === 'red' && s === 'red') activeTurrets.push(i);
+      });
+      activeTurrets.forEach(ti => {
+        const t = turrets[ti];
         ctx.save();
         ctx.strokeStyle = col;
         ctx.lineWidth = 2;
-        ctx.globalAlpha = 0.55 * (1 - progress);
-        ctx.shadowBlur = 12;
+        ctx.globalAlpha = 0.75 * (1 - a.currentProgress * 0.4);
+        ctx.shadowBlur = 15;
         ctx.shadowColor = glow;
         ctx.beginPath();
-        ctx.moveTo(src.t.x, src.t.y);
-        ctx.lineTo(spots[i].cx, spots[i].cy);
+        ctx.moveTo(t.x, t.y);
+        ctx.lineTo(spot.cx, spot.cy);
         ctx.stroke();
         ctx.restore();
-      }
+      });
     }
 
     function drawWinEffect(time) {
@@ -4727,8 +4774,6 @@
       lwHairAnim = null;
       lwFlowerAnim = null;
       lwHeadBackfill = null;
-      lkHairAnim = null;
-      lkHeadBackfill = null;
       laserbugSpotState = selectedCharacter === 'laserbug'
         ? getLaserbugSpots().map(() => ({ progress: 0, color: 'green' }))
         : [];
