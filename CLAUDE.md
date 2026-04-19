@@ -118,12 +118,33 @@ Each submenu shows a single bold mode title at the same size as the home-page LA
 `#dict-indicator-row` sits in the same slot as the solo category row and shows `LASERMAN DICTIONARY WORD? [check/x]`. `updateDictIndicator(word)` is called from `startGame` — loads the dictionary (lazy, cached), then shows a cyan ✓ if the word is in the dictionary, red ✕ if not, and `...` while loading. Hides itself entirely if the dictionary fetch fails. The toggle and indicator share a `.dict-box` class — cyan ✓ or red ✕ square, with a `data-dict-toggle` checkbox wired via `syncDictToggles()` / `setUseLasermanDict()`. `useLasermanDict` defaults to `true` for first-time users.
 
 ## Deployment
-- **GitHub Pages**: `https://brightinfinity3.github.io/laserman/laserman.html` — auto-deploys on push to `main`
-- **Railway (wbcgamez)**: `wbcgamez-production.up.railway.app/laserman/`. Deploy: copy `Laserman.html` → `wbcgamez/public/laserman/index.html`, then `railway up` from `wbcgamez` dir. Already linked.
-- **Railway (ladybug)**: `ladybug.up.railway.app/laserman/`. Deploy: copy `Laserman.html` → `ladybug-gamez/public/laserman/index.html`, then `railway up` from `ladybug-gamez` dir. Already linked.
-- **GitHub repo**: `https://github.com/BrightInfinity3/laserman.git` on `main` branch
-- **Full deploy workflow**: After changes, push to GitHub, then copy `Laserman.html` to both `wbcgamez/public/laserman/index.html` and `ladybug-gamez/public/laserman/index.html`, then `railway up` from each directory
-- **Selective deploys (current default)**: The user has asked to ship experimental character work (new characters, yo-yo, color themes, etc.) to **ladybug only** and keep wbcgamez stable. Each v4.18+ ladybug-only update skips the wbcgamez copy/upload step. Ask before reverting to full-platform deploys.
+
+### Hosts
+- **GitHub Pages** (Laserman repo itself): `https://brightinfinity3.github.io/laserman/laserman.html` — auto-deploys on push to `main` of `BrightInfinity3/laserman`.
+- **Railway / wbcgamez**: `wbcgamez-production.up.railway.app/laserman/`. Serves from `wbcgamez/public/laserman/index.html` in the `BrightInfinity3/wbcgamez` repo.
+- **Railway / ladybug**: `ladybug.up.railway.app/laserman/`. Serves from `ladybug-gamez/public/laserman/index.html` in the `BrightInfinity3/ladybug-gamez` repo.
+
+### Critical: Railway auto-deploys from GitHub, NOT from `railway up`
+Both Railway services (`wbcgamez` and `ladybug-gamez`) have **GitHub auto-deploy** configured. When you push to `main` of their respective repos, Railway rebuilds and redeploys automatically.
+
+Running `railway up` from the local `wbcgamez/` or `ladybug-gamez/` directory IS accepted by Railway's API, but the resulting deployment is immediately superseded by the GitHub auto-deploy of whatever is currently on `origin/main`. Net effect: if you only update the local `public/laserman/index.html` and run `railway up`, **the live site keeps serving the old committed version**. This caused a multi-version gap between ladybug and the Laserman repo until caught in Apr 2026.
+
+### Correct full-deploy workflow
+After editing `Laserman.html` in the Laserman repo:
+1. `git add laserman.html && git commit … && git push origin main` — updates the Laserman repo + GitHub Pages build.
+2. `cp Laserman.html ../wbcgamez/public/laserman/index.html` (only when wbcgamez needs the update — currently held stable).
+3. `cp Laserman.html ../ladybug-gamez/public/laserman/index.html`
+4. `cp laserman-master-dictionary.txt ../ladybug-gamez/public/laserman/laserman-master-dictionary.txt` (only when the dictionary itself changed).
+5. In each target repo: `git add …` → `git commit …` → `git push origin main`. Railway auto-deploy picks it up in ~1–3 minutes.
+6. No `railway up` needed unless a host doesn't have GitHub integration set.
+
+### Selective-deploy policy (still current)
+The user has asked to ship experimental work (new characters, yo-yo, color themes, etc.) to **ladybug only** and keep **wbcgamez** stable. Every v4.18+ ladybug-only update skips steps 2 (wbcgamez copy) + the wbcgamez commit/push. Ask before reverting to full-platform deploys.
+
+### Git repos
+- Laserman game source: `https://github.com/BrightInfinity3/laserman.git` (`main`)
+- wbcgamez host: `https://github.com/BrightInfinity3/wbcgamez.git` (`main`)
+- ladybug-gamez host: `https://github.com/BrightInfinity3/ladybug-gamez.git` (`main`)
 
 ## Responsive Design
 - Game buttons (`.game-btn`) use `clamp()` for font-size, padding, letter-spacing with `max-width: 45vw` and `overflow: hidden; text-overflow: ellipsis`
